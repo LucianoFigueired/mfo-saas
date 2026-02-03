@@ -43,6 +43,17 @@ export const CreateInsuranceSchema = z.object({
   startDate: z.string().or(z.date()),
 });
 
+export const RegisterSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  name: z.string().min(2, "Nome é obrigatório"),
+});
+
+export const LoginSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+  password: z.string(),
+});
+
 export const UpdateSimulationSchema = CreateSimulationSchema.partial();
 export const UpdateAssetSchema = CreateAssetSchema.partial();
 export const UpdateEventSchema = CreateEventSchema.partial();
@@ -58,3 +69,5 @@ export type CreateEventDto = z.infer<typeof CreateEventSchema>;
 export type UpdateEventDto = z.infer<typeof UpdateEventSchema>;
 export type CreateInsuranceDto = z.infer<typeof CreateInsuranceSchema>;
 export type UpdateInsuranceDto = z.infer<typeof UpdateInsuranceSchema>;
+export type RegisterDto = z.infer<typeof RegisterSchema>;
+export type LoginDto = z.infer<typeof LoginSchema>;

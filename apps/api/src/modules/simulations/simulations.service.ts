@@ -17,16 +17,19 @@ export class SimulationsService {
     });
   }
 
-  async findAll() {
+  async findAll(userId: string) {
     return this.prisma.simulation.findMany({
-      where: { isLegacy: false }, // Retorna apenas as versões atuais por padrão
+      where: {
+        userId,
+        isLegacy: false,
+      },
       orderBy: { updatedAt: 'desc' },
     });
   }
 
-  async findOne(id: string) {
-    const sim = await this.prisma.simulation.findUnique({
-      where: { id },
+  async findOne(id: string, userId: string) {
+    const sim = await this.prisma.simulation.findFirst({
+      where: { id, userId },
       include: {
         assets: true,
         events: true,
@@ -34,11 +37,15 @@ export class SimulationsService {
         aiAnalyses: true,
       },
     });
-    if (!sim) throw new NotFoundException('Simulação não encontrada');
+
+    if (!sim)
+      throw new NotFoundException('Simulação não encontrada ou acesso negado');
     return sim;
   }
 
-  async update(id: string, dto: UpdateSimulationDto) {
+  async update(id: string, dto: UpdateSimulationDto, userId: string) {
+    await this.findOne(id, userId);
+
     return this.prisma.simulation.update({
       where: { id },
       data: {
@@ -48,7 +55,11 @@ export class SimulationsService {
     });
   }
 
-  async remove(id: string) {
-    return this.prisma.simulation.delete({ where: { id } });
+  async remove(id: string, userId: string) {
+    await this.findOne(id, userId);
+
+    return this.prisma.simulation.delete({
+      where: { id },
+    });
   }
 }

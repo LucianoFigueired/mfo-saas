@@ -1,3 +1,4 @@
+// apps/api/src/modules/projections/projections.controller.ts
 import {
   Controller,
   Get,
@@ -6,13 +7,21 @@ import {
   Param,
   Query,
   UsePipes,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ProjectionsService } from './projections.service';
 import { ZodValidationPipe } from 'nestjs-zod';
-import type { CreateVersionDto, ProjectionQueryDto } from '@mfo/common';
+import {
+  ProjectionQuerySchema,
+  CreateVersionSchema,
+  type CreateVersionDto,
+  type ProjectionQueryDto,
+} from '@mfo/common';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
-import { ProjectionQuerySchema, CreateVersionSchema } from '@mfo/common';
-
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('projections')
 export class ProjectionsController {
   constructor(private readonly projectionsService: ProjectionsService) {}
@@ -22,8 +31,10 @@ export class ProjectionsController {
   async getProjection(
     @Param('id') id: string,
     @Query() query: ProjectionQueryDto,
+    @Req() req: any,
   ) {
-    return this.projectionsService.generate(id, query.status);
+    // Passamos o userId para garantir que ele só projete o que lhe pertence
+    return this.projectionsService.generate(id, req.user.userId, query.status);
   }
 
   @Post(':id/version')
@@ -31,12 +42,22 @@ export class ProjectionsController {
   async createNewVersion(
     @Param('id') id: string,
     @Body() body: CreateVersionDto,
+    @Req() req: any,
   ) {
-    return this.projectionsService.createVersion(id, body.name);
+    return this.projectionsService.createVersion(
+      id,
+      req.user.userId,
+      body.name,
+    );
   }
 
   @Post(':id/actual')
-  async createActualSituation(@Param('id') id: string) {
-    return this.projectionsService.createVersion(id, 'Situação Atual', true);
+  async createActualSituation(@Param('id') id: string, @Req() req: any) {
+    return this.projectionsService.createVersion(
+      id,
+      req.user.userId,
+      'Situação Atual',
+      true,
+    );
   }
 }

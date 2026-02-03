@@ -16,12 +16,13 @@ export class SensitivityListener {
         simulationId: event.simulationId,
         results: event.results,
         metadata: event.metadata,
+        userId: event.userId,
       },
       {
-        attempts: 3, // Se a OpenAI falhar, tenta 3 vezes
+        attempts: 3,
         backoff: {
           type: 'exponential',
-          delay: 5000, // Espera 5s antes da primeira tentativa
+          delay: 5000,
         },
       },
     );
@@ -29,31 +30,5 @@ export class SensitivityListener {
     console.log(
       `[Queue] Job de análise enviado para o Redis: ${event.simulationId}`,
     );
-  }
-
-  private buildAiPrompt(event: ProjectionGeneratedEvent, criticalPoint: any) {
-    return `
-      Contexto: Simulação de patrimônio para Family Office.
-      Nome: ${event.metadata.name}
-      Taxa Real: ${event.metadata.baseTax * 100}% a.a.
-      Status: ${event.metadata.status}
-      
-      Resultados:
-      - Patrimônio Inicial: ${event.results[0].wealth}
-      - Patrimônio Final (2060): ${event.results[event.results.length - 1].wealth}
-      ${criticalPoint ? `- ALERTA: O patrimônio esgota-se em ${criticalPoint.year}` : ''}
-
-      Tarefa: Sugira 3 ações de sensibilidade (Ex: aumentar inflação, reduzir aportes ou seguro extra).
-    `;
-  }
-
-  private mockAiAnalysis(prompt: string) {
-    setTimeout(() => {
-      console.log('--- Sugestão da IA ---');
-      console.log(
-        'Notamos que se a inflação subir 1%, o patrimônio esgota-se 5 anos antes.',
-      );
-      console.log('Deseja simular um aporte extra de R$ 200k no ano 2030?');
-    }, 2000);
   }
 }

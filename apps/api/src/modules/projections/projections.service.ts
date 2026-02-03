@@ -13,9 +13,16 @@ export class ProjectionsService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async generate(simulationId: string, statusOverride?: Status) {
-    const simulation = await this.prisma.simulation.findUnique({
-      where: { id: simulationId },
+  async generate(
+    simulationId: string,
+    userId: string,
+    statusOverride?: Status,
+  ) {
+    const simulation = await this.prisma.simulation.findFirst({
+      where: {
+        id: simulationId,
+        userId: userId,
+      },
       include: {
         assets: true,
         events: true,
@@ -23,7 +30,8 @@ export class ProjectionsService {
       },
     });
 
-    if (!simulation) throw new NotFoundException('Simulação não encontrada');
+    if (!simulation)
+      throw new NotFoundException('Simulação não encontrada ou acesso negado');
 
     const status = statusOverride || simulation.status;
     const startYear = simulation.startDate.getFullYear();
@@ -73,7 +81,7 @@ export class ProjectionsService {
 
     this.eventEmitter.emit(
       'projection.generated',
-      new ProjectionGeneratedEvent(simulationId, results, {
+      new ProjectionGeneratedEvent(simulationId, userId, results, {
         name: simulation.name,
         baseTax: simulation.baseTax.toNumber(),
         status: status,
@@ -83,23 +91,27 @@ export class ProjectionsService {
     return results;
   }
 
-  async createVersion(id: string, newName?: string, isSituationActual = false) {
-    // 1. Busca a simulação original com todas as relações
-    const original = await this.prisma.simulation.findUnique({
-      where: { id },
+  async createVersion(
+    id: string,
+    userId: string,
+    newName?: string,
+    isSituationActual = false,
+  ) {
+    // Busca a simulação original validando o dono
+    const original = await this.prisma.simulation.findFirst({
+      where: { id, userId },
       include: { assets: true, events: true, insurances: true },
     });
 
     if (!original)
-      throw new NotFoundException('Simulação original não encontrada');
+      throw new NotFoundException(
+        'Simulação original não encontrada ou acesso negado',
+      );
 
-    // 2. Define os novos atributos
     const name = newName || original.name;
     const startDate = isSituationActual ? new Date() : original.startDate;
 
-    // 3. Execução Atômica
     return this.prisma.$transaction(async (tx) => {
-      // Regra: Se for uma nova versão do mesmo nome (não é Situação Atual), marca a anterior como legado
       if (!isSituationActual && !newName) {
         await tx.simulation.update({
           where: { id },
@@ -107,17 +119,15 @@ export class ProjectionsService {
         });
       }
 
-      // Cria a nova simulação clonando os dados
       return tx.simulation.create({
         data: {
           name,
           baseTax: original.baseTax,
           startDate,
           status: original.status,
-          userId: original.userId,
+          userId: userId,
           version: isSituationActual ? 1 : original.version + 1,
           parentVersionId: original.id,
-          // Clonagem profunda das relações
           assets: {
             create: original.assets.map(({ id, simulationId, ...rest }) => ({
               ...rest,
@@ -130,19 +140,15 @@ export class ProjectionsService {
           },
           insurances: {
             create: original.insurances.map(
-              ({ id, simulationId, ...rest }) => ({
-                ...rest,
-              }),
+              ({ id, simulationId, ...rest }) => ({ ...rest }),
             ),
           },
         },
-
         include: { assets: true, events: true, insurances: true },
       });
     });
   }
 
-  // Lógica Dinâmica de Fluxo de Caixa
   private calculateYearlyCashFlow(
     events: any[],
     year: number,

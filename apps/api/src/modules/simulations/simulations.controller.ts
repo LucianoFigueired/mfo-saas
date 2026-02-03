@@ -8,33 +8,35 @@ import {
   Param,
   Delete,
   UsePipes,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { SimulationsService } from './simulations.service';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { CreateSimulationSchema, UpdateSimulationSchema } from '@mfo/common';
-
 import type { CreateSimulationDto, UpdateSimulationDto } from '@mfo/common';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('simulations')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class SimulationsController {
   constructor(private readonly simulationsService: SimulationsService) {}
 
   @Post()
   @UsePipes(new ZodValidationPipe(CreateSimulationSchema))
-  create(@Body() createSimulationDto: CreateSimulationDto) {
-    // Por enquanto, usaremos um userId fixo até termos Auth
-    const userId = 'ID-DO-USER-DO-SEED';
-    return this.simulationsService.create(createSimulationDto, userId);
+  create(@Body() createSimulationDto: CreateSimulationDto, @Req() req: any) {
+    return this.simulationsService.create(createSimulationDto, req.user.userId);
   }
 
   @Get()
-  findAll() {
-    return this.simulationsService.findAll();
+  findAll(@Req() req: any) {
+    return this.simulationsService.findAll(req.user.userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.simulationsService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.simulationsService.findOne(id, req.user.userId);
   }
 
   @Patch(':id')
@@ -42,12 +44,17 @@ export class SimulationsController {
   update(
     @Param('id') id: string,
     @Body() updateSimulationDto: UpdateSimulationDto,
+    @Req() req: any,
   ) {
-    return this.simulationsService.update(id, updateSimulationDto);
+    return this.simulationsService.update(
+      id,
+      updateSimulationDto,
+      req.user.userId,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.simulationsService.remove(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.simulationsService.remove(id, req.user.userId);
   }
 }

@@ -10,6 +10,9 @@ import { SimulationsModule } from './modules/simulations/simulations.module';
 import { AssetsModule } from './modules/assets/assets.module';
 import { EventsModule } from './modules/events/events.module';
 import { InsurancesModule } from './modules/insurances/insurances.module';
+import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { NotificationsGateway } from './modules/notifications/notifications.gateway';
 
 @Module({
   imports: [
@@ -26,8 +29,10 @@ import { InsurancesModule } from './modules/insurances/insurances.module';
     AssetsModule,
     EventsModule,
     InsurancesModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AiService],
+  providers: [AppService, AiService, NotificationsGateway],
 })
 export class AppModule {}
