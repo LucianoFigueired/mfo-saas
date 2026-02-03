@@ -1,5 +1,4 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-// Importamos do nosso pacote interno do monorepo
 import { PrismaClient } from '@mfo/database';
 
 @Injectable()
