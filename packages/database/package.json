@@ -1,0 +1,21 @@
+{
+  "name": "@mfo/database",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^7.3.0",
+    "@prisma/config": "^7.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "dotenv": "^17.2.3",
+    "prisma": "^7.3.0"
+  }
+}

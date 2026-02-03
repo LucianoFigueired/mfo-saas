@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String?
+  simulations Simulation[]
+  createdAt   DateTime     @default(now())
+}
+
+model Simulation {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  baseTax     Decimal  @db.Decimal(10, 4)
+  startDate   DateTime
+  status      Status   @default(VIVO)
+
+  // Versionamento
+  isLegacy        Boolean @default(false)
+  version         Int     @default(1)
+  parentVersionId String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  assets     Asset[]
+  events     Event[]
+  insurances Insurance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Status {
+  VIVO
+  MORTO
+  INVALIDO
+}
+
+model Asset {
+  id    String    @id @default(uuid())
+  name  String
+  type  AssetType
+  value Decimal   @db.Decimal(15, 2)
+  date  DateTime
+
+  // Para bens imobilizados/financiados
+  isFinanced   Boolean  @default(false)
+  installments Int?
+  interestRate Decimal? @db.Decimal(10, 4)
+  downPayment  Decimal? @db.Decimal(15, 2)
+
+  simulationId String
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+}
+
+enum AssetType {
+  FINANCEIRO
+  IMOBILIZADO
+}
+
+model Event {
+  id        String    @id @default(uuid())
+  name      String
+  type      EventType
+  value     Decimal   @db.Decimal(15, 2)
+  frequency Frequency @default(ONCE)
+  startDate DateTime
+  endDate   DateTime?
+
+  simulationId String
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+}
+
+enum EventType {
+  ENTRADA
+  SAIDA
+}
+
+enum Frequency {
+  ONCE
+  MONTHLY
+  YEARLY
+}
+
+model Insurance {
+  id           String   @id @default(uuid())
+  name         String
+  premium      Decimal  @db.Decimal(15, 2) // Valor mensal pago
+  insuredValue Decimal  @db.Decimal(15, 2) // Valor a receber
+  duration     Int // Em meses
+  startDate    DateTime
+
+  simulationId String
+  simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+}
