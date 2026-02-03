@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Decimal } from 'decimal.js';
 import { addYears, isBefore, isAfter, startOfYear } from 'date-fns';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ProjectionGeneratedEvent } from './events/projection-generated.event';
+import { Status } from '@mfo/database';
 
 @Injectable()
 export class ProjectionsService {
@@ -11,7 +13,7 @@ export class ProjectionsService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async generate(simulationId: string, statusOverride?: 'VIVO' | 'MORTO') {
+  async generate(simulationId: string, statusOverride?: Status) {
     const simulation = await this.prisma.simulation.findUnique({
       where: { id: simulationId },
       include: {
@@ -21,7 +23,7 @@ export class ProjectionsService {
       },
     });
 
-    if (!simulation) throw new Error('Simulação não encontrada');
+    if (!simulation) throw new NotFoundException('Simulação não encontrada');
 
     const status = statusOverride || simulation.status;
     const startYear = simulation.startDate.getFullYear();
@@ -34,24 +36,16 @@ export class ProjectionsService {
     );
 
     for (let year = startYear; year <= endYear; year++) {
-      const yearDate = new Date(year, 0, 1);
-
-      // Aplicar Entradas e Saídas (Events)
       const yearlyCashFlow = this.calculateYearlyCashFlow(
         simulation.events,
         year,
         status,
       );
 
-      // Atualizar patrimônio com fluxo de caixa
       currentWealth = currentWealth.plus(yearlyCashFlow);
-
-      // Aplicar Juros Compostos (Taxa Real)
-      // Patrimônio Final = Patrimônio * (1 + Taxa)
       const growthFactor = new Decimal(1).plus(simulation.baseTax);
       currentWealth = currentWealth.times(growthFactor);
 
-      // Se for o cenário "MORTO", somar o valor segurado no primeiro ano da morte (simplificação)
       if (status === 'MORTO' && year === startYear) {
         const totalInsurance = simulation.insurances.reduce(
           (acc, ins) => acc.plus(ins.insuredValue),
@@ -67,41 +61,43 @@ export class ProjectionsService {
       });
     }
 
-    this.eventEmitter.emit('projection.generated', {
-      simulationId,
-      results,
-      metadata: {
+    this.eventEmitter.emit(
+      'projection.generated',
+      new ProjectionGeneratedEvent(simulationId, results, {
         name: simulation.name,
         baseTax: simulation.baseTax.toNumber(),
         status: status,
-      },
-    });
+      }),
+    );
+
     return results;
   }
 
   async createVersion(id: string, newName?: string, isSituationActual = false) {
-    // 1. Busca a simulação original com tudo dentro
+    // 1. Busca a simulação original com todas as relações
     const original = await this.prisma.simulation.findUnique({
       where: { id },
       include: { assets: true, events: true, insurances: true },
     });
 
-    if (!original) throw new Error('Simulação original não encontrada');
+    if (!original)
+      throw new NotFoundException('Simulação original não encontrada');
 
-    // 2. Define os novos atributos baseados na regra do PS
+    // 2. Define os novos atributos
     const name = newName || original.name;
     const startDate = isSituationActual ? new Date() : original.startDate;
 
-    // Regra: Versão legado é marcada na original se for uma nova versão do mesmo nome
-    if (!isSituationActual && !newName) {
-      await this.prisma.simulation.update({
-        where: { id },
-        data: { isLegacy: true },
-      });
-    }
-
-    // 3. Persistência Atômica (Transação)
+    // 3. Execução Atômica
     return this.prisma.$transaction(async (tx) => {
+      // Regra: Se for uma nova versão do mesmo nome (não é Situação Atual), marca a anterior como legado
+      if (!isSituationActual && !newName) {
+        await tx.simulation.update({
+          where: { id },
+          data: { isLegacy: true },
+        });
+      }
+
+      // Cria a nova simulação clonando os dados
       return tx.simulation.create({
         data: {
           name,
@@ -111,34 +107,26 @@ export class ProjectionsService {
           userId: original.userId,
           version: isSituationActual ? 1 : original.version + 1,
           parentVersionId: original.id,
-          // Clonando os Arrays de relação
+          // Clonagem profunda das relações
           assets: {
-            create: original.assets.map((a) => ({
-              name: a.name,
-              type: a.type,
-              value: a.value,
-              date: a.date,
+            create: original.assets.map(({ id, simulationId, ...rest }) => ({
+              ...rest,
             })),
           },
           events: {
-            create: original.events.map((e) => ({
-              name: e.name,
-              type: e.type,
-              value: e.value,
-              frequency: e.frequency,
-              startDate: e.startDate,
+            create: original.events.map(({ id, simulationId, ...rest }) => ({
+              ...rest,
             })),
           },
           insurances: {
-            create: original.insurances.map((i) => ({
-              name: i.name,
-              premium: i.premium,
-              insuredValue: i.insuredValue,
-              duration: i.duration,
-              startDate: i.startDate,
-            })),
+            create: original.insurances.map(
+              ({ id, simulationId, ...rest }) => ({
+                ...rest,
+              }),
+            ),
           },
         },
+        include: { assets: true, events: true, insurances: true },
       });
     });
   }

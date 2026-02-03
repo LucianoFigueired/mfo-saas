@@ -1,18 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ProjectionGeneratedEvent } from '../events/projection-generated.event';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class SensitivityListener {
+  constructor(@InjectQueue('ai-analysis') private aiQueue: Queue) {}
+
   @OnEvent('projection.generated')
   async handleProjectionGenerated(event: ProjectionGeneratedEvent) {
-    console.log(
-      `[IA Analysis] Analisando sensibilidade para: ${event.metadata.name}`,
+    await this.aiQueue.add(
+      'analyze-sensitivity',
+      {
+        simulationId: event.simulationId,
+        results: event.results,
+        metadata: event.metadata,
+      },
+      {
+        attempts: 3, // Se a OpenAI falhar, tenta 3 vezes
+        backoff: {
+          type: 'exponential',
+          delay: 5000, // Espera 5s antes da primeira tentativa
+        },
+      },
     );
 
-    const criticalPoint = event.results.find((r) => parseFloat(r.wealth) <= 0);
-    const prompt = this.buildAiPrompt(event, criticalPoint);
-    this.mockAiAnalysis(prompt);
+    console.log(
+      `[Queue] Job de análise enviado para o Redis: ${event.simulationId}`,
+    );
   }
 
   private buildAiPrompt(event: ProjectionGeneratedEvent, criticalPoint: any) {
