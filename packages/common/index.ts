@@ -26,7 +26,35 @@ export const CreateAssetSchema = z.object({
   downPayment: z.number().optional(),
 });
 
+export const CreateEventSchema = z.object({
+  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
+  type: z.enum(["ENTRADA", "SAIDA"]),
+  value: z.number().positive("O valor deve ser positivo"),
+  frequency: z.enum(["UNIQUE", "MONTHLY", "YEARLY"]).default("MONTHLY"),
+  startDate: z.string().or(z.date()),
+  endDate: z.string().or(z.date()).optional(),
+});
+
+export const CreateInsuranceSchema = z.object({
+  name: z.string().min(2, "O nome da apólice deve ter pelo menos 2 caracteres"),
+  premium: z.number().positive("O prêmio deve ser um valor positivo"),
+  insuredValue: z.number().positive("O valor segurado deve ser positivo"),
+  duration: z.number().int().positive("A duração deve ser em meses"),
+  startDate: z.string().or(z.date()),
+});
+
+export const UpdateSimulationSchema = CreateSimulationSchema.partial();
+export const UpdateAssetSchema = CreateAssetSchema.partial();
+export const UpdateEventSchema = CreateEventSchema.partial();
+export const UpdateInsuranceSchema = CreateInsuranceSchema.partial();
+
 export type CreateSimulationDto = z.infer<typeof CreateSimulationSchema>;
 export type CreateAssetDto = z.infer<typeof CreateAssetSchema>;
 export type CreateVersionDto = z.infer<typeof CreateVersionSchema>;
 export type ProjectionQueryDto = z.infer<typeof ProjectionQuerySchema>;
+export type UpdateSimulationDto = z.infer<typeof UpdateSimulationSchema>;
+export type UpdateAssetDto = z.infer<typeof UpdateAssetSchema>;
+export type CreateEventDto = z.infer<typeof CreateEventSchema>;
+export type UpdateEventDto = z.infer<typeof UpdateEventSchema>;
+export type CreateInsuranceDto = z.infer<typeof CreateInsuranceSchema>;
+export type UpdateInsuranceDto = z.infer<typeof UpdateInsuranceSchema>;

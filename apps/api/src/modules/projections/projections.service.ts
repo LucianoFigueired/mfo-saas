@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Decimal } from 'decimal.js';
-import { addYears, isBefore, isAfter, startOfYear } from 'date-fns';
+import { isBefore, isAfter, endOfYear, startOfYear } from 'date-fns';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProjectionGeneratedEvent } from './events/projection-generated.event';
 import { Status } from '@mfo/database';
@@ -36,28 +36,38 @@ export class ProjectionsService {
     );
 
     for (let year = startYear; year <= endYear; year++) {
+      const yearStart = startOfYear(new Date(year, 0, 1));
+
+      // 1. Calcular Fluxo de Caixa considerando validade dos eventos
       const yearlyCashFlow = this.calculateYearlyCashFlow(
         simulation.events,
         year,
         status,
       );
 
-      currentWealth = currentWealth.plus(yearlyCashFlow);
+      // 2. Somar Seguros Ativos (apenas se MORTO e no ano da simulação)
+      let insurancePayout = new Decimal(0);
+      if (status === 'MORTO' && year === startYear) {
+        insurancePayout = this.calculateActiveInsurancesPayout(
+          simulation.insurances,
+          simulation.startDate,
+        );
+      }
+
+      // 3. Atualizar patrimônio: (Saldo + Fluxo + Seguro)
+      currentWealth = currentWealth.plus(yearlyCashFlow).plus(insurancePayout);
+
+      // 4. Aplicar Juros Compostos (Taxa Real)
       const growthFactor = new Decimal(1).plus(simulation.baseTax);
       currentWealth = currentWealth.times(growthFactor);
-
-      if (status === 'MORTO' && year === startYear) {
-        const totalInsurance = simulation.insurances.reduce(
-          (acc, ins) => acc.plus(ins.insuredValue),
-          new Decimal(0),
-        );
-        currentWealth = currentWealth.plus(totalInsurance);
-      }
 
       results.push({
         year,
         wealth: currentWealth.toFixed(2),
         cashFlow: yearlyCashFlow.toFixed(2),
+        insuranceReceived: insurancePayout.isZero()
+          ? undefined
+          : insurancePayout.toFixed(2),
       });
     }
 
@@ -126,9 +136,73 @@ export class ProjectionsService {
             ),
           },
         },
+
         include: { assets: true, events: true, insurances: true },
       });
     });
+  }
+
+  // Lógica Dinâmica de Fluxo de Caixa
+  private calculateYearlyCashFlow(
+    events: any[],
+    year: number,
+    status: string,
+  ): Decimal {
+    let total = new Decimal(0);
+    const yearStart = startOfYear(new Date(year, 0, 1));
+    const yearEnd = endOfYear(new Date(year, 0, 1));
+
+    events.forEach((event) => {
+      const eventStart = new Date(event.startDate);
+      const eventEnd = event.endDate ? new Date(event.endDate) : null;
+
+      // Verifica se o evento é válido para este ano
+      // Regra: O evento deve ter começado antes do fim deste ano E (não ter fim ou acabar após o início deste ano)
+      const isActiveThisYear =
+        isBefore(eventStart, yearEnd) &&
+        (!eventEnd || isAfter(eventEnd, yearStart));
+
+      if (!isActiveThisYear) return;
+
+      // Regras de Status (MFO)
+      if (status === 'MORTO' && event.type === 'ENTRADA') return;
+
+      let eventValue = new Decimal(event.value);
+      if (status === 'MORTO' && event.type === 'SAIDA') {
+        eventValue = eventValue.div(2);
+      }
+
+      const multiplier = event.frequency === 'MONTHLY' ? 12 : 1;
+      const yearlyImpact = eventValue.times(multiplier);
+
+      if (event.type === 'ENTRADA') {
+        total = total.plus(yearlyImpact);
+      } else {
+        total = total.minus(yearlyImpact);
+      }
+    });
+
+    return total;
+  }
+
+  // Lógica Dinâmica de Seguros
+  private calculateActiveInsurancesPayout(
+    insurances: any[],
+    referenceDate: Date,
+  ): Decimal {
+    return insurances.reduce((acc, ins) => {
+      const startDate = new Date(ins.startDate);
+      // Calcula a data de expiração baseada na duração em meses
+      const expirationDate = new Date(startDate);
+      expirationDate.setMonth(expirationDate.getMonth() + ins.duration);
+
+      // O seguro só paga se estiver ativo na data de referência (morte)
+      const isActive =
+        isBefore(startDate, referenceDate) &&
+        isAfter(expirationDate, referenceDate);
+
+      return isActive ? acc.plus(new Decimal(ins.insuredValue)) : acc;
+    }, new Decimal(0));
   }
 
   private calculateInitialWealth(assets: any[], startDate: Date): Decimal {
@@ -151,37 +225,5 @@ export class ProjectionsService {
       (acc, asset) => acc.plus(new Decimal(asset.value)),
       new Decimal(0),
     );
-  }
-
-  private calculateYearlyCashFlow(
-    events: any[],
-    year: number,
-    status: string,
-  ): Decimal {
-    let total = new Decimal(0);
-
-    events.forEach((event) => {
-      // Regra de Status
-      if (status === 'MORTO' && event.type === 'ENTRADA') return; // Morto não tem entrada
-
-      let eventValue = new Decimal(event.value);
-
-      // Regra de Status: Despesas divididas por 2 se morto
-      if (status === 'MORTO' && event.type === 'SAIDA') {
-        eventValue = eventValue.div(2);
-      }
-
-      // Cálculo simplificado de frequência
-      const multiplier = event.frequency === 'MONTHLY' ? 12 : 1;
-      const yearlyImpact = eventValue.times(multiplier);
-
-      if (event.type === 'ENTRADA') {
-        total = total.plus(yearlyImpact);
-      } else {
-        total = total.minus(yearlyImpact);
-      }
-    });
-
-    return total;
   }
 }
