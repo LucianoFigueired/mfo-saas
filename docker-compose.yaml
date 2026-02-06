@@ -22,25 +22,6 @@ services:
     ports:
       - "6379:6379"
 
-  # api:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/api/Dockerfile
-  #   container_name: mfo-api
-  #   ports:
-  #     - "3001:3000"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_started
-  #   environment:
-  #     - DATABASE_URL=postgresql://user:password@postgres:5432/mfo_db?schema=public
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #     - NODE_ENV=production
-  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
-
   api:
     build:
       context: .
@@ -58,19 +39,34 @@ services:
       - DATABASE_URL=postgresql://user:password@postgres:5432/mfo_db?schema=public
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - NODE_ENV=development
+      - JWT_SECRET=${JWT_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NODE_ENV=development
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/packages/database/node_modules
     command: >
-      sh -c "
-        echo '🚀 Bootstrapping Database...' &&
-        pnpm --filter @mfo/database exec prisma generate &&
-        echo \"module.exports = require('@prisma/client');\" > packages/database/index.js &&
-        
-        echo '🟢 Iniciando NestJS com Webpack...' &&
-        pnpm --filter @mfo/api run start:dev
-      "
+      sh -c "pnpm --filter @mfo/database exec prisma generate && 
+             pnpm --filter @mfo/api run start:dev"
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: mfo-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/.next
+    command: pnpm --filter web run dev
+
 volumes:
   postgres_data:

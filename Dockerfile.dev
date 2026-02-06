@@ -3,26 +3,19 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Instala ferramentas globais e dependências do sistema para o Prisma/Nest
 RUN npm install -g pnpm turbo @nestjs/cli
 RUN apk add --no-cache libc6-compat openssl procps
 
-# Copia os arquivos de configuração de dependências
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 
-# Copia os package.json dos apps/packages para o pnpm saber o que instalar
 COPY apps/api/package.json ./apps/api/package.json
 COPY packages/database/package.json ./packages/database/package.json
 COPY packages/common/package.json ./packages/common/package.json
 
-# Instala TUDO (incluindo devDependencies como typescript, eslint, nest-cli)
 RUN pnpm install
 
-# Copia o código fonte inicial (será sobrescrito pelo Volume, mas é bom ter)
 COPY . .
 
-# Gera o cliente do Prisma (necessário antes de rodar)
 RUN pnpm --filter @mfo/database exec prisma generate
 
-# Comando padrão de desenvolvimento
 CMD ["pnpm", "--filter", "@mfo/api", "run", "start:dev"]
