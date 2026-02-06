@@ -13,10 +13,12 @@ import { InsurancesModule } from './modules/insurances/insurances.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { NotificationsGateway } from './modules/notifications/notifications.gateway';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     PrismaModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     ProjectionsModule,
     EventEmitterModule.forRoot(),
     BullModule.forRoot({

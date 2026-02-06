@@ -1,4 +1,3 @@
-// apps/api/src/modules/projections/processors/ai-analysis.processor.ts
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { NotificationsGateway } from '../../notifications/notifications.gateway';
 import { Injectable } from '@nestjs/common';
@@ -12,13 +11,13 @@ export class AiAnalysisProcessor extends WorkerHost {
   constructor(
     private aiService: AiService,
     private prisma: PrismaService,
-    private notificationsGateway: NotificationsGateway, // Injetando o Gateway
+    private notificationsGateway: NotificationsGateway,
   ) {
     super();
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    const { simulationId, results, metadata, userId } = job.data; // Note que agora passamos o userId no job
+    const { simulationId, results, metadata, userId } = job.data;
 
     if (job.name === 'analyze-sensitivity') {
       const analysis = await this.aiService.analyzeSensitivity({

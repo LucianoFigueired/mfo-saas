@@ -1,4 +1,3 @@
-// apps/api/src/modules/ai/ai.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import OpenAI from 'openai';
 
@@ -30,7 +29,7 @@ export class AiService {
             content: `Dados da Simulação: ${JSON.stringify(data)}`,
           },
         ],
-        response_format: { type: 'json_object' }, // Garante que a IA responda um JSON válido
+        response_format: { type: 'json_object' },
       });
 
       return JSON.parse(response.choices[0].message.content ?? '');
