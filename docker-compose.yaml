@@ -10,6 +10,11 @@ services:
       POSTGRES_DB: mfo_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mfo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
@@ -17,5 +22,55 @@ services:
     ports:
       - "6379:6379"
 
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/api/Dockerfile
+  #   container_name: mfo-api
+  #   ports:
+  #     - "3001:3000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_started
+  #   environment:
+  #     - DATABASE_URL=postgresql://user:password@postgres:5432/mfo_db?schema=public
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #     - NODE_ENV=production
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: mfo-api
+    ports:
+      - "3001:3000"
+      - "9229:9229"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/mfo_db?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=development
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: >
+      sh -c "
+        echo '🚀 Bootstrapping Database...' &&
+        pnpm --filter @mfo/database exec prisma generate &&
+        echo \"module.exports = require('@prisma/client');\" > packages/database/index.js &&
+        
+        echo '🟢 Iniciando NestJS com Webpack...' &&
+        pnpm --filter @mfo/api run start:dev
+      "
 volumes:
   postgres_data:
