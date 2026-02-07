@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/@repo/@mfo/common/components/ui/form";
 import { Input } from "@/components/@repo/@mfo/common/components/ui/input";
 import { Button } from "@/components/@repo/@mfo/common/components/ui/button";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -80,10 +81,16 @@ export default function LoginPage() {
               />
               {form.formState.errors.root && <p className="text-sm font-medium text-destructive">{form.formState.errors.root.message}</p>}
             </CardContent>
-            <CardFooter className="mt-6">
+            <CardFooter className="flex flex-col gap-4 mt-6">
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Autenticando..." : "Entrar no Sistema"}
               </Button>
+              <div className="text-center text-sm text-muted-foreground">
+                Ainda não tem uma conta?
+                <Link href="/register" className="ml-1">
+                  <span className="text-blue-700">Cadastre-se</span>
+                </Link>
+              </div>
             </CardFooter>
           </form>
         </Form>
