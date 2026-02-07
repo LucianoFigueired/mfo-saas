@@ -1,16 +1,18 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+import { Button } from "@components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@components/ui/form";
+import { Input } from "@components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema, type RegisterDto } from "@mfo-common";
-import Link from "next/link";
+import { useForm } from "react-hook-form";
+
 import { api } from "@/lib/api";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/@repo/@mfo/common/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/@repo/@mfo/common/components/ui/form";
-import { Input } from "@/components/@repo/@mfo/common/components/ui/input";
-import { Button } from "@/components/@repo/@mfo/common/components/ui/button";
 
 export default function RegisterPage() {
   const router = useRouter();
