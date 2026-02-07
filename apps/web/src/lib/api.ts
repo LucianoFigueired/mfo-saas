@@ -5,9 +5,21 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("@mfo:token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const storageData = localStorage.getItem("@mfo:token");
+
+  if (storageData) {
+    try {
+      const parsedData = JSON.parse(storageData);
+
+      const token = parsedData.state?.token;
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error("Erro ao fazer parse do token:", error);
+    }
   }
+
   return config;
 });
