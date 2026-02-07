@@ -1,4 +1,3 @@
-// apps/api/src/modules/insurances/insurances.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateInsuranceDto, UpdateInsuranceDto } from '@mfo/common';

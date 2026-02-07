@@ -1,4 +1,3 @@
-// apps/api/src/modules/simulations/simulations.controller.ts
 import {
   Controller,
   Get,

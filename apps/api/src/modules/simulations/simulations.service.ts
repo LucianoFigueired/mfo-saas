@@ -1,4 +1,3 @@
-// apps/api/src/modules/simulations/simulations.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSimulationDto, UpdateSimulationDto } from '@mfo/common';

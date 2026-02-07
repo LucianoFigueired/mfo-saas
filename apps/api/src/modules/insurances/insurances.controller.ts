@@ -1,4 +1,3 @@
-// apps/api/src/modules/insurances/insurances.controller.ts
 import {
   Controller,
   Post,

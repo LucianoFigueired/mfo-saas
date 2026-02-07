@@ -1,4 +1,3 @@
-// apps/api/src/modules/events/events.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateEventDto, UpdateEventDto } from '@mfo/common';

@@ -1,4 +1,3 @@
-// apps/api/src/modules/events/events.controller.ts
 import {
   Controller,
   Post,

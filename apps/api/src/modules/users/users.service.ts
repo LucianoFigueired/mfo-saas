@@ -1,4 +1,3 @@
-// apps/api/src/modules/users/users.service.ts
 import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from '@mfo/common';

@@ -1,4 +1,3 @@
-// apps/api/src/modules/projections/projections.controller.ts
 import {
   Controller,
   Get,
