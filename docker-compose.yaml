@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: mfo-api
     ports:
-      - "3001:3000"
+      - "3001:3001"
       - "9229:9229"
     depends_on:
       postgres:
@@ -48,8 +48,21 @@ services:
       - /app/apps/api/node_modules
       - /app/packages/database/node_modules
     command: >
-      sh -c "pnpm --filter @mfo/database exec prisma generate && 
-             pnpm --filter @mfo/api run start:dev"
+      sh -c "
+        echo '⏳ Aguardando Banco de Dados...' &&
+        
+        echo '🚀 Gerando Prisma Client...' &&
+        pnpm --filter @mfo/database exec prisma generate &&
+        
+        echo '🔄 Sincronizando Tabelas (DB Push)...' &&
+        pnpm --filter @mfo/database exec prisma db push --accept-data-loss &&
+        
+        echo '🔧 Criando entrypoint index.js...' &&
+        echo \"module.exports = require('@prisma/client');\" > packages/database/index.js &&
+        
+        echo '🟢 Iniciando NestJS com Webpack...' &&
+        pnpm --filter @mfo/api run start:dev
+      "
   web:
     build:
       context: .
