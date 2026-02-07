@@ -26,13 +26,14 @@ export default function LoginPage() {
   async function onSubmit(data: LoginDto) {
     setLoading(true);
     try {
-      const response = await api.post("/auth/login", data);
+      console.log(data);
+      const response = await api.post("/api/auth/login", data);
 
       const { user, access_token } = response.data;
 
       setAuth(user, access_token);
 
-      router.push("/dashboard");
+      router.push("/");
     } catch (error) {
       console.error("Erro ao autenticar", error);
       form.setError("root", { message: "E-mail ou senha incorretos." });
