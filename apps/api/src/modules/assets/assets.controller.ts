@@ -19,10 +19,10 @@ export class AssetsController {
   constructor(private readonly assetsService: AssetsService) {}
 
   @Post()
-  @UsePipes(new ZodValidationPipe(CreateAssetSchema))
   create(
     @Param('simulationId') simulationId: string,
-    @Body() createAssetDto: CreateAssetDto,
+    @Body(new ZodValidationPipe(CreateAssetSchema))
+    createAssetDto: CreateAssetDto,
   ) {
     return this.assetsService.create(simulationId, createAssetDto);
   }
