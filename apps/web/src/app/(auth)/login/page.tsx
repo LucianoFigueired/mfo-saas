@@ -30,7 +30,6 @@ export default function LoginPage() {
   async function onSubmit(data: LoginDto) {
     setLoading(true);
     try {
-      console.log(data);
       const response = await api.post("/api/auth/login", data);
 
       const { user, access_token } = response.data;

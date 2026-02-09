@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter, usePathname } from "next/navigation";
+
 import {
   Sidebar,
   SidebarContent,
@@ -13,9 +15,9 @@ import {
   SidebarFooter,
   SidebarRail,
 } from "@components/ui/sidebar";
-import { PieChart, Users, Wallet, Activity, Settings, LogOut, ChevronRight } from "lucide-react";
+import { PieChart, Users, Wallet, Activity, LogOut } from "lucide-react";
+
 import { useAuthStore } from "@/stores/useAuthStore";
-import { useRouter, usePathname } from "next/navigation";
 
 const items = [
   {
@@ -25,17 +27,17 @@ const items = [
   },
   {
     title: "Simulações",
-    url: "/dashboard/simulations",
+    url: "/simulations",
     icon: Users,
   },
   {
     title: "Gestão de Ativos",
-    url: "/dashboard/assets",
+    url: "/assets",
     icon: Wallet,
   },
   {
     title: "Inteligência Artificial",
-    url: "/dashboard/ai-analysis",
+    url: "/ai-analysis",
     icon: Activity,
   },
 ];

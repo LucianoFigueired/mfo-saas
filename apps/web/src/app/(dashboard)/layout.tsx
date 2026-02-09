@@ -1,4 +1,5 @@
-import { Separator } from "@/components/@repo/@mfo/common/components/ui/separator";
+import { SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
+
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -7,8 +8,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/@repo/@mfo/common/components/ui/breadcrumb";
+import { Separator } from "@/components/@repo/@mfo/common/components/ui/separator";
 import { AppSidebar } from "@/components/AppSidebar";
-import { SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
