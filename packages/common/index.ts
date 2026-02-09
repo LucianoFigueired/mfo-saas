@@ -21,7 +21,7 @@ export const CreateAssetSchema = z.object({
   value: z.number().positive("O valor deve ser maior que zero"),
   date: z.string().or(z.date()),
   isFinanced: z.boolean().optional(),
-  installments: z.number().int().positive().optional(),
+  installments: z.number().int().min(0).optional(),
   interestRate: z.number().optional(),
   downPayment: z.number().optional(),
 });
