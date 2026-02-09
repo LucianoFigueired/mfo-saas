@@ -26,21 +26,18 @@ export class ProjectionsController {
   constructor(private readonly projectionsService: ProjectionsService) {}
 
   @Get(':id')
-  @UsePipes(new ZodValidationPipe(ProjectionQuerySchema))
   async getProjection(
     @Param('id') id: string,
-    @Query() query: ProjectionQueryDto,
+    @Query(new ZodValidationPipe(ProjectionQuerySchema))
+    query: ProjectionQueryDto,
     @Req() req: any,
   ) {
-    // Passamos o userId para garantir que ele só projete o que lhe pertence
     return this.projectionsService.generate(id, req.user.userId, query.status);
   }
-
   @Post(':id/version')
-  @UsePipes(new ZodValidationPipe(CreateVersionSchema))
   async createNewVersion(
     @Param('id') id: string,
-    @Body() body: CreateVersionDto,
+    @Body(new ZodValidationPipe(CreateVersionSchema)) body: CreateVersionDto,
     @Req() req: any,
   ) {
     return this.projectionsService.createVersion(
