@@ -16,6 +16,6 @@ export interface Asset {
 }
 
 export enum AssetType {
-  FINANCEIRO,
-  IMOBILIZADO,
+  FINANCEIRO = "FINANCEIRO",
+  IMOBILIZADO = "IMOBILIZADO",
 }

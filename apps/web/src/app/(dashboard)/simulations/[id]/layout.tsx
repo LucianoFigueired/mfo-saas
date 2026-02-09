@@ -74,7 +74,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
             {[
               { name: "Projeção", href: "projection" },
               { name: "Ativos", href: "assets" },
-              { name: "Fluxo de Caixa", href: "cash-flow" },
+              { name: "Movimentações", href: "events" },
               { name: "Riscos & Seguros", href: "risk" },
               { name: "Análise IA", href: "analysis" },
             ].map((tab) => {

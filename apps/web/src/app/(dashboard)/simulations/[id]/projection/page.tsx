@@ -142,7 +142,7 @@ export default function ProjectionPage() {
                               <span className="font-bold text-primary">{formatCurrency(payload[0].value as number)}</span>
                             </div>
                             <div className="flex flex-col col-span-2 border-t pt-1 mt-1">
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">Fluxo de Caixa</span>
+                              <span className="text-[0.70rem] uppercase text-muted-foreground">Movimentações</span>
                               <span
                                 className={`font-bold ${(payload[0].payload.cashFlow || 0) >= 0 ? "text-emerald-500" : "text-red-500"}`}
                               >
