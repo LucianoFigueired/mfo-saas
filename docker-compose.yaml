@@ -47,6 +47,7 @@ services:
       - /app/node_modules
       - /app/apps/api/node_modules
       - /app/packages/database/node_modules
+      - /app/packages/common/node_modules
     command: >
       sh -c "
         echo '⏳ Aguardando Banco de Dados...' &&
@@ -78,6 +79,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/apps/web/node_modules
       - /app/apps/web/.next
     command: pnpm --filter web run dev
 
