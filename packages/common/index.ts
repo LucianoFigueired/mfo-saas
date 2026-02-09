@@ -30,7 +30,7 @@ export const CreateEventSchema = z.object({
   name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
   type: z.enum(["ENTRADA", "SAIDA"]),
   value: z.number().positive("O valor deve ser positivo"),
-  frequency: z.enum(["UNIQUE", "MONTHLY", "YEARLY"]).default("MONTHLY"),
+  frequency: z.enum(["ONCE", "MONTHLY", "YEARLY"]).optional(),
   startDate: z.string().or(z.date()),
   endDate: z.string().or(z.date()).optional(),
 });
