@@ -19,7 +19,7 @@ export class EventsService {
         simulationId,
         startDate: new Date(dto.startDate),
         endDate: dto.endDate ? new Date(dto.endDate) : undefined,
-        frequency: Frequency[dto.frequency],
+        frequency: Frequency[dto.frequency ?? Frequency.ONCE],
       },
     });
   }
