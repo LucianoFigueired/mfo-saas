@@ -43,7 +43,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard/simulations")}>
+            <Button variant="ghost" size="icon" onClick={() => router.push("/simulations")}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
@@ -82,7 +82,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
               return (
                 <Link
                   key={tab.href}
-                  href={`/dashboard/simulations/${simulationId}/${tab.href}`}
+                  href={`/simulations/${simulationId}/${tab.href}`}
                   className={cn(
                     "px-3 py-2 text-sm font-medium transition-colors border-b-2",
                     isActive ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
