@@ -4,12 +4,14 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { CreateAssetDto } from "@mfo-common";
 import { Asset } from "@/types/asset";
+import { useAiAnalysis } from "./useAiAnalysis";
 
 const ASSETS_QUERY_KEY = ["assets"];
 const PROJECTION_QUERY_KEY = ["projection"];
 
 export const useAssets = (simulationId: string) => {
   const queryClient = useQueryClient();
+  const { notifyAnalysisStarted } = useAiAnalysis(simulationId);
 
   const { data: assets, isLoading } = useQuery({
     queryKey: [ASSETS_QUERY_KEY, simulationId],
@@ -26,6 +28,7 @@ export const useAssets = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Ativo adicionado com sucesso!");
+      notifyAnalysisStarted();
       queryClient.invalidateQueries({ queryKey: [ASSETS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },
@@ -38,6 +41,7 @@ export const useAssets = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Ativo removido.");
+      notifyAnalysisStarted();
       queryClient.invalidateQueries({ queryKey: [ASSETS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },
@@ -50,6 +54,7 @@ export const useAssets = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Ativo atualizado.");
+      notifyAnalysisStarted();
       queryClient.invalidateQueries({ queryKey: [ASSETS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },

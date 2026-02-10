@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 
-import { ArrowLeft, GitBranch, Save } from "lucide-react";
+import { ArrowLeft, GitBranch, Save, SquarePen } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
@@ -12,12 +12,15 @@ import { Skeleton } from "@/components/@repo/@mfo/common/components/ui/skeleton"
 import { cn } from "@/components/@repo/@mfo/common/lib/utils";
 
 import { api } from "@/lib/api";
+import { useState } from "react";
 
 export default function SimulationLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
   const pathname = usePathname();
   const router = useRouter();
   const simulationId = params.id as string;
+
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const { data: simulation, isLoading } = useQuery({
     queryKey: ["simulation", simulationId],
@@ -43,7 +46,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => router.push("/simulations")}>
+            <Button variant="ghost" className="cursor-pointer" size="icon" onClick={() => router.push("/simulations")}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
@@ -51,8 +54,8 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
                 {simulation.name}
                 <Badge variant={simulation.status === "VIVO" ? "default" : "destructive"}>{simulation.status}</Badge>
               </h1>
-              <p className="text-muted-foreground text-sm">
-                Versão {simulation.version} • Criado em {new Date(simulation.createdAt).toLocaleDateString()}
+              <p className="text-muted-foreground text-sm mt-2">
+                Versão {simulation.version} • Criada em {new Date(simulation.createdAt).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -63,8 +66,17 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
               Nova Versão
             </Button>
             <Button size="sm">
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Alterações
+              {isEditMode ? (
+                <div className="flex items-center cursor-pointer" onClick={() => setIsEditMode(!isEditMode)}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Alterações
+                </div>
+              ) : (
+                <div className="flex items-center cursor-pointer" onClick={() => setIsEditMode(!isEditMode)}>
+                  <SquarePen className="mr-2 h-4 w-4" />
+                  Alterar detalhes
+                </div>
+              )}
             </Button>
           </div>
         </div>
@@ -75,7 +87,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
               { name: "Projeção", href: "projection" },
               { name: "Ativos", href: "assets" },
               { name: "Movimentações", href: "events" },
-              { name: "Riscos & Seguros", href: "risk" },
+              { name: "Seguros", href: "insurances" },
               { name: "Análise IA", href: "analysis" },
             ].map((tab) => {
               const isActive = pathname.includes(tab.href);

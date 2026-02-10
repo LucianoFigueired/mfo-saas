@@ -3,12 +3,14 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { CreateEventDto } from "@mfo-common";
 import { FinancialEvent } from "@/types/event";
+import { useAiAnalysis } from "./useAiAnalysis";
 
 const EVENTS_QUERY_KEY = ["events"];
 const PROJECTION_QUERY_KEY = ["projection"];
 
 export const useEvents = (simulationId: string) => {
   const queryClient = useQueryClient();
+  const { notifyAnalysisStarted } = useAiAnalysis(simulationId);
 
   const { data: events, isLoading } = useQuery({
     queryKey: [EVENTS_QUERY_KEY, simulationId],
@@ -25,6 +27,7 @@ export const useEvents = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Evento salvo com sucesso!");
+      notifyAnalysisStarted();
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },
@@ -37,6 +40,7 @@ export const useEvents = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Evento removido.");
+      notifyAnalysisStarted();
       queryClient.invalidateQueries({ queryKey: [EVENTS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },
