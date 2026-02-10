@@ -6,7 +6,6 @@ import {
   Get,
   Patch,
   Delete,
-  UsePipes,
 } from '@nestjs/common';
 import { InsurancesService } from './insurances.service';
 import { ZodValidationPipe } from 'nestjs-zod';
@@ -18,10 +17,9 @@ export class InsurancesController {
   constructor(private readonly insurancesService: InsurancesService) {}
 
   @Post()
-  @UsePipes(new ZodValidationPipe(CreateInsuranceSchema))
   create(
     @Param('simulationId') simulationId: string,
-    @Body() dto: CreateInsuranceDto,
+    @Body(new ZodValidationPipe(CreateInsuranceSchema)) dto: CreateInsuranceDto,
   ) {
     return this.insurancesService.create(simulationId, dto);
   }
@@ -32,8 +30,10 @@ export class InsurancesController {
   }
 
   @Patch(':id')
-  @UsePipes(new ZodValidationPipe(UpdateInsuranceSchema))
-  update(@Param('id') id: string, @Body() dto: UpdateInsuranceDto) {
+  update(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateInsuranceSchema)) dto: UpdateInsuranceDto,
+  ) {
     return this.insurancesService.update(id, dto);
   }
 
