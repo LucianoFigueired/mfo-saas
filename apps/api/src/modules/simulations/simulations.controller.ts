@@ -28,6 +28,11 @@ export class SimulationsController {
     return this.simulationsService.create(createSimulationDto, req.user.userId);
   }
 
+  @Get(':id/analysis/latest')
+  async getLatestAnalysis(@Param('id') id: string, @Req() req: any) {
+    return this.simulationsService.getLatestAnalysis(id, req.user.userId);
+  }
+
   @Get()
   findAll(@Req() req: any) {
     return this.simulationsService.findAll(req.user.userId);
