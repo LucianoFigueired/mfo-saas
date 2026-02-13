@@ -1,12 +1,12 @@
 import { api } from "@/lib/api";
 import { Simulation } from "@/types/simulation";
-import { CreateSimulationDto } from "@mfo-common";
+import { CreateSimulationDto, UpdateSimulationDto } from "@mfo-common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const SIULATIONS_QUERY_KEY = ["simulations"];
 
-export const useSimulation = () => {
+export const useSimulation = (simulationId?: string) => {
   const queryClient = useQueryClient();
 
   const {
@@ -22,7 +22,7 @@ export const useSimulation = () => {
     },
   });
 
-  const createMutation = useMutation({
+  const createSimulation = useMutation({
     mutationFn: async (simulation: CreateSimulationDto) => {
       const { data } = await api.post("/api/simulations", simulation);
       return data;
@@ -35,11 +35,25 @@ export const useSimulation = () => {
     },
   });
 
+  const editSimulation = useMutation({
+    mutationFn: async (simulation: UpdateSimulationDto) => {
+      const { data } = await api.patch(`/api/simulations/${simulationId}`, simulation);
+      return data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["simulations"] });
+    },
+    onError: (error: any) => {
+      toast.error(`Erro ao editar simulação: ${error}`);
+    },
+  });
+
   return {
     simulations,
     isLoading,
     isError,
     refetch,
-    createMutation,
+    createSimulation,
+    editSimulation,
   };
 };
