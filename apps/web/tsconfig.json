@@ -6,7 +6,8 @@
     "paths": {
       "@mfo-common": ["../../packages/common"],
       "@/*": ["./src/*"],
-      "@components/*": ["src/components/@repo/@mfo/common/components/*"]
+      "@components/*": ["src/components/@repo/@mfo/common/components/*"],
+      "@assets/*": ["./public/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", "next.config.js", ".next/types/**/*.ts"],

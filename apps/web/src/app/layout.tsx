@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import Providers from "./providers";
 import "./globals.css";
+import { Toaster } from "sonner";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+const plus_jakarta_sans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -24,9 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={plus_jakarta_sans.className}>
         <Providers>{children}</Providers>
-        {/* <Toaster position="top-right" richColors /> */}
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

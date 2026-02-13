@@ -27,7 +27,7 @@ import { useSimulation } from "@/hooks/useSimulations";
 export default function NewSimulationPage() {
   const router = useRouter();
 
-  const { createMutation } = useSimulation();
+  const { createSimulation } = useSimulation();
 
   const form = useForm<CreateSimulationDto>({
     resolver: zodResolver(CreateSimulationSchema) as any,
@@ -45,7 +45,7 @@ export default function NewSimulationPage() {
       baseTax: Number(data.baseTax) / 100,
     };
 
-    createMutation.mutate(payload, {
+    createSimulation.mutate(payload, {
       onSuccess: (response) => {
         router.push(`/simulations/${response.id}/projection`);
       },
@@ -186,8 +186,8 @@ export default function NewSimulationPage() {
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? (
+            <Button type="submit" disabled={createSimulation.isPending}>
+              {createSimulation.isPending ? (
                 <Spinner />
               ) : (
                 <>

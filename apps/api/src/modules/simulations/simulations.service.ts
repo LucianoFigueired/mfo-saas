@@ -16,6 +16,21 @@ export class SimulationsService {
     });
   }
 
+  async getLatestAnalysis(simulationId: string, userId: string) {
+    const simulation = await this.prisma.simulation.findFirst({
+      where: { id: simulationId, userId },
+    });
+
+    if (!simulation) {
+      throw new NotFoundException('Simulação não encontrada');
+    }
+
+    return this.prisma.aiAnalysis.findFirst({
+      where: { simulationId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findAll(userId: string) {
     return this.prisma.simulation.findMany({
       where: {

@@ -17,7 +17,11 @@ import {
 } from "@components/ui/sidebar";
 import { PieChart, Users, Wallet, Activity, LogOut } from "lucide-react";
 
+import NamedLogo from "@assets/named-logo.svg";
+import Logo from "@assets/square-logo.svg";
+
 import { useAuthStore } from "@/stores/useAuthStore";
+import Image from "next/image";
 
 const items = [
   {
@@ -57,8 +61,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 border-b">
         <div className="flex items-center gap-2 font-bold text-xl text-primary">
-          <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">M</div>
-          <span className="group-data-[collapsible=icon]:hidden">MFO Planner</span>
+          <Image src={Logo} alt="Zelo" width={32} height={32} />
+          <span className="group-data-[collapsible=icon]:hidden ml-1">
+            <Image src={NamedLogo} alt="Zelo" width={48} height={48} />
+          </span>
         </div>
       </SidebarHeader>
 

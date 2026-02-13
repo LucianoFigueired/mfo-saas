@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@components/ui/form";
-import { Trash2, PlusCircle, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Trash2, PlusCircle, ArrowUpCircle, ArrowDownCircle, Infinity, MoveRight } from "lucide-react";
 import { Spinner } from "@components/ui/spinner";
 
 import { useEvents } from "@/hooks/useEvents";
@@ -64,7 +64,7 @@ export default function EventsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Fluxo de Caixa</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Movimentações</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -246,10 +246,14 @@ export default function EventsPage() {
                             ? "Anual"
                             : "Único"}
                       </TableCell>
-                      <TableCell className="text-xs">
-                        {format(new Date(event.startDate), "MMM/yy", { locale: ptBR })}
-                        {" -> "}
-                        {event.endDate ? format(new Date(event.endDate), "MMM/yy", { locale: ptBR }) : "∞"}
+                      <TableCell className="text-xs flex items-center">
+                        <span className="mr-1">{format(new Date(event.startDate), "MMM/yy", { locale: ptBR })}</span>
+                        <MoveRight size={16} />
+                        {event.endDate ? (
+                          format(new Date(event.endDate), "MMM/yy", { locale: ptBR })
+                        ) : (
+                          <Infinity size={16} className="ml-1" />
+                        )}
                       </TableCell>
                       <TableCell className={`text-right font-bold ${event.type === EventType.ENTRADA ? "text-green-600" : "text-red-600"}`}>
                         {event.type === EventType.SAIDA ? "- " : "+ "}
