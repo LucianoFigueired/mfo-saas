@@ -64,13 +64,15 @@ export default function EventsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Movimentações</h2>
+        <h2 className="text-xl font-bold tracking-tight text-foreground/80">Movimentações</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className={`lg:col-span-1 h-fit border-t-4 ${isIncome ? "border-t-green-500" : "border-t-red-500"}`}>
-          <CardHeader>
-            <CardTitle>{isIncome ? "Nova Receita" : "Nova Despesa"}</CardTitle>
+        <Card
+          className={`lg:col-span-1 h-fit border-t-5 rounded-t-sm rounded-b-xl ${isIncome ? "border-t-green-500" : "border-t-red-500"}`}
+        >
+          <CardHeader className="border-b-2 pb-4">
+            <CardTitle className="text-foreground/80">{isIncome ? "Nova Receita" : "Nova Despesa"}</CardTitle>
             <CardDescription>{isIncome ? "Salários, Dividendos, Aluguéis..." : "Custo de vida, Escola, Prestação..."}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,7 +105,7 @@ export default function EventsPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descrição</FormLabel>
+                      <FormLabel className={isIncome ? "text-green-600" : "text-red-600"}>Descrição</FormLabel>
                       <FormControl>
                         <Input placeholder={isIncome ? "Ex: Salário Mensal" : "Ex: Mensalidade Escolar"} {...field} />
                       </FormControl>
@@ -118,7 +120,7 @@ export default function EventsPage() {
                     name="value"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valor (R$)</FormLabel>
+                        <FormLabel className={isIncome ? "text-green-600" : "text-red-600"}>Valor (R$)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -141,10 +143,10 @@ export default function EventsPage() {
                     name="frequency"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Frequência</FormLabel>
+                        <FormLabel className={isIncome ? "text-green-600" : "text-red-600"}>Frequência</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full min-h-11 rounded-xl">
                               <SelectValue placeholder="Selecione" />
                             </SelectTrigger>
                           </FormControl>
@@ -165,7 +167,7 @@ export default function EventsPage() {
                   name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Início</FormLabel>
+                      <FormLabel className={isIncome ? "text-green-600" : "text-red-600"}>Início</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} value={field.value ? String(field.value).split("T")[0] : ""} />
                       </FormControl>
@@ -179,7 +181,7 @@ export default function EventsPage() {
                   name="endDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Fim (Opcional)</FormLabel>
+                      <FormLabel className={isIncome ? "text-green-600" : "text-red-600"}>Fim (Opcional)</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} value={field.value ? String(field.value).split("T")[0] : ""} />
                       </FormControl>
@@ -209,7 +211,8 @@ export default function EventsPage() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Histórico de Eventos</CardTitle>
+            <CardTitle className="text-foreground/80">Histórico de Movimentações</CardTitle>
+            <CardDescription>Registro detalhado de toda a movimentação de entrada e saída</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -232,13 +235,13 @@ export default function EventsPage() {
                   {events?.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell>
-                        {event.type === EventType.ENTRADA ? (
+                        {isIncome ? (
                           <ArrowUpCircle className="h-5 w-5 text-green-500" />
                         ) : (
                           <ArrowDownCircle className="h-5 w-5 text-red-500" />
                         )}
                       </TableCell>
-                      <TableCell className="font-medium">{event.name}</TableCell>
+                      <TableCell className="font-medium text-foreground/80">{event.name}</TableCell>
                       <TableCell className="text-xs uppercase text-muted-foreground">
                         {event.frequency === EventFrequency.MONTHLY
                           ? "Mensal"
@@ -246,13 +249,17 @@ export default function EventsPage() {
                             ? "Anual"
                             : "Único"}
                       </TableCell>
-                      <TableCell className="text-xs flex items-center">
-                        <span className="mr-1">{format(new Date(event.startDate), "MMM/yy", { locale: ptBR })}</span>
+                      <TableCell className="text-xs flex pt-4 items-center">
+                        <span className="mr-1 text-xs text-foreground/80">
+                          {format(new Date(event.startDate), "MMM/yy", { locale: ptBR }).toUpperCase()}
+                        </span>
                         <MoveRight size={16} />
                         {event.endDate ? (
-                          format(new Date(event.endDate), "MMM/yy", { locale: ptBR })
+                          <span className="text-sm text-foreground/80">
+                            {format(new Date(event.endDate), "MMM/yy", { locale: ptBR }).toUpperCase()}
+                          </span>
                         ) : (
-                          <Infinity size={16} className="ml-1" />
+                          <Infinity size={20} className="text-foreground/70 ml-1" />
                         )}
                       </TableCell>
                       <TableCell className={`text-right font-bold ${event.type === EventType.ENTRADA ? "text-green-600" : "text-red-600"}`}>
@@ -267,7 +274,7 @@ export default function EventsPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => deleteEvent.mutate(event.id!)}
-                          className="hover:text-red-500 cursor-pointer"
+                          className="text-foreground/50 hover:text-red-500 cursor-pointer"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { ArrowLeft, GitBranch, Save, SquarePen } from "lucide-react";
+import { Badge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
+import { ArrowLeft, GitBranch, SquarePen } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
-import { Button } from "@/components/@repo/@mfo/common/components/ui/button";
-import { Skeleton } from "@/components/@repo/@mfo/common/components/ui/skeleton";
-import { cn } from "@/components/@repo/@mfo/common/lib/utils";
+import { EditSimulationDialog } from "./_components/EditSimulationDialog";
+import { NewVersionDialog } from "./_components/NewVersionDialog";
 
+import { cn } from "@/components/@repo/@mfo/common/lib/utils";
 import { api } from "@/lib/api";
-import { useState } from "react";
 
 export default function SimulationLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
@@ -20,7 +22,8 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
   const router = useRouter();
   const simulationId = params.id as string;
 
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isNewVersionOpen, setIsNewVersionOpen] = useState(false);
 
   const { data: simulation, isLoading } = useQuery({
     queryKey: ["simulation", simulationId],
@@ -29,8 +32,6 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
       return res.data;
     },
   });
-
-  const activeTab = pathname.split("/").pop();
 
   if (isLoading) {
     return (
@@ -43,40 +44,47 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="flex flex-col gap-6">
+      <EditSimulationDialog open={isEditOpen} onOpenChange={setIsEditOpen} simulation={simulation} />
+
+      <NewVersionDialog
+        open={isNewVersionOpen}
+        onOpenChange={setIsNewVersionOpen}
+        currentSimulationName={simulation.name}
+        simulationId={simulationId}
+      />
+
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" className="cursor-pointer" size="icon" onClick={() => router.push("/simulations")}>
+            <Button variant="ghost" className="rounded-xl cursor-pointer" size="icon" onClick={() => router.push("/simulations")}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <h1 className="text-xl font-bold text-foreground/80 tracking-tight flex items-center gap-2">
                 {simulation.name}
-                <Badge variant={simulation.status === "VIVO" ? "default" : "destructive"}>{simulation.status}</Badge>
+                <Badge className="ml-2 px-4 py-1 font-bold" variant={simulation.status === "VIVO" ? "default" : "destructive"}>
+                  {simulation.status}
+                </Badge>
               </h1>
-              <p className="text-muted-foreground text-sm mt-2">
-                Versão {simulation.version} • Criada em {new Date(simulation.createdAt).toLocaleDateString()}
+              <p className="text-muted-foreground text-sm mt-1">
+                <span className="mr-1.5">Versão {simulation.version}</span>
+                <span className="text-xs">•</span>
+                <span className="ml-1.5">Criada em {new Date(simulation.createdAt).toLocaleDateString()}</span>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsNewVersionOpen(true)}>
               <GitBranch className="mr-2 h-4 w-4" />
               Nova Versão
             </Button>
-            <Button size="sm">
-              {isEditMode ? (
-                <div className="flex items-center cursor-pointer" onClick={() => setIsEditMode(!isEditMode)}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Alterações
-                </div>
-              ) : (
-                <div className="flex items-center cursor-pointer" onClick={() => setIsEditMode(!isEditMode)}>
-                  <SquarePen className="mr-2 h-4 w-4" />
-                  Alterar detalhes
-                </div>
-              )}
+
+            <Button size="sm" onClick={() => setIsEditOpen(true)}>
+              <div className="flex items-center cursor-pointer">
+                <SquarePen className="mr-2 h-4 w-4" />
+                Alterar detalhes
+              </div>
             </Button>
           </div>
         </div>
@@ -97,10 +105,10 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
                   href={`/simulations/${simulationId}/${tab.href}`}
                   className={cn(
                     "px-3 py-2 text-sm font-medium transition-colors border-b-2",
-                    isActive ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
+                    isActive ? "border-primary border-b-3" : "border-transparent hover:text-foreground",
                   )}
                 >
-                  {tab.name}
+                  <span className={isActive ? "text-primary" : "text-muted-foreground"}>{tab.name}</span>
                 </Link>
               );
             })}

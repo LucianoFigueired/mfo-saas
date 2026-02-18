@@ -56,7 +56,7 @@ export default function ProjectionPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Patrimônio Final (2060)</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Patrimônio Final (2060)</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -67,7 +67,7 @@ export default function ProjectionPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Crescimento Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Crescimento Total</CardTitle>
             <TrendingUp className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
@@ -78,7 +78,7 @@ export default function ProjectionPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fluxo de Caixa Médio</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Fluxo de Caixa Médio</CardTitle>
             <ActivityIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -94,59 +94,50 @@ export default function ProjectionPage() {
       <Card className="col-span-4">
         <CardHeader>
           <CardTitle>Evolução Patrimonial</CardTitle>
-          <CardDescription>Projeção linear considerando juros compostos e fluxo de caixa.</CardDescription>
+          <CardDescription>Projeção linear considerando juros compostos e fluxo de caixa</CardDescription>
         </CardHeader>
-        <CardContent className="pl-2">
-          <div className="h-100 w-full">
+        <CardContent>
+          <div className="h-87.5 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={projectionData}
-                margin={{
-                  top: 10,
-                  right: 30,
-                  left: 0,
-                  bottom: 0,
-                }}
-              >
+              <AreaChart data={projectionData} margin={{ top: 20, right: 20, left: 40, bottom: 20 }}>
                 <defs>
                   <linearGradient id="colorWealth" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0} />
+                    <stop offset="15%" stopColor="var(--chart-2)" stopOpacity={0.85} />
+                    <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-
-                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-
-                <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={10} className="text-xs text-muted-foreground" />
-
+                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/50" />
+                <XAxis
+                  dataKey="year"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={12}
+                  className="text-xs font-medium text-muted-foreground"
+                />
                 <YAxis
                   tickFormatter={(value) => formatCompactCurrency(value)}
                   tickLine={false}
                   axisLine={false}
-                  tickMargin={10}
-                  className="text-xs text-muted-foreground"
+                  tickMargin={12}
+                  className="text-xs font-medium text-muted-foreground"
                 />
-
                 <Tooltip
+                  cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
+                      const { wealth, cashFlow } = payload[0].payload;
                       return (
-                        <div className="rounded-lg border bg-background p-2 shadow-sm">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="flex flex-col">
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">Ano</span>
-                              <span className="font-bold text-muted-foreground">{label}</span>
+                        <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-3 shadow-xl">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Projeção {label}</p>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-xs text-muted-foreground">Patrimônio:</span>
+                              <span className="text-sm font-bold text-foreground">{formatCurrency(wealth)}</span>
                             </div>
-                            <div className="flex flex-col">
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">Patrimônio</span>
-                              <span className="font-bold text-primary">{formatCurrency(payload[0].value as number)}</span>
-                            </div>
-                            <div className="flex flex-col col-span-2 border-t pt-1 mt-1">
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">Movimentações</span>
-                              <span
-                                className={`font-bold ${(payload[0].payload.cashFlow || 0) >= 0 ? "text-emerald-500" : "text-red-500"}`}
-                              >
-                                {formatCurrency(payload[0].payload.cashFlow)}
+                            <div className="flex items-center justify-between gap-4 pt-1.5 border-t">
+                              <span className="text-xs text-muted-foreground">Fluxo:</span>
+                              <span className={`text-xs font-bold ${cashFlow >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                                {cashFlow >= 0 ? "+" : ""} {formatCurrency(cashFlow)}
                               </span>
                             </div>
                           </div>
@@ -156,8 +147,17 @@ export default function ProjectionPage() {
                     return null;
                   }}
                 />
-
-                <Area type="monotone" dataKey="wealth" stroke="var(--chart-1)" fillOpacity={1} fill="url(#colorWealth)" strokeWidth={2} />
+                <Area
+                  type="monotone"
+                  dataKey="wealth"
+                  stroke="var(--chart-2)"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorWealth)"
+                  dot={{ r: 3, fill: "var(--background)", stroke: "var(--chart-2)", strokeWidth: 1 }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: "var(--chart-2)" }}
+                  animationDuration={1500}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>

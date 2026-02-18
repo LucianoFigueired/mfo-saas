@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 
 import { Button } from "@components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Checkbox } from "@components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@components/ui/form";
 import { Input } from "@components/ui/input";
@@ -73,13 +73,14 @@ export default function AssetsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Gestão de Patrimônio</h2>
+        <h2 className="text-xl font-bold tracking-tight text-foreground/80">Gestão de ativos</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 h-fit">
-          <CardHeader>
-            <CardTitle>Novo Ativo</CardTitle>
+        <Card className="lg:col-span-1 h-fit border-t-5 rounded-t-sm rounded-b-xl border-t-purple-500">
+          <CardHeader className="border-b-2 pb-4">
+            <CardTitle className="text-foreground/80">Novo Ativo</CardTitle>
+            <CardDescription className="text-muted-foreground">Registre ativos e bens ao portfólio</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -89,10 +90,10 @@ export default function AssetsPage() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de Alocação</FormLabel>
+                      <FormLabel className="text-purple-700">Tipo de Alocação</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="min-h-11 text-foreground/80 rounded-xl">
                             <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
@@ -111,7 +112,7 @@ export default function AssetsPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome / Descrição</FormLabel>
+                      <FormLabel className="text-purple-700">Nome / Descrição</FormLabel>
                       <FormControl>
                         <Input placeholder="Ex: Carteira NuInvest ou Ap. Jardins" {...field} />
                       </FormControl>
@@ -125,7 +126,7 @@ export default function AssetsPage() {
                   name="date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Data de Aquisição / Referência</FormLabel>
+                      <FormLabel className="text-purple-700">Data de Aquisição / Referência</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} value={field.value as unknown as string} />
                       </FormControl>
@@ -139,7 +140,7 @@ export default function AssetsPage() {
                   name="value"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Total de Mercado (R$)</FormLabel>
+                      <FormLabel className="text-purple-700">Valor Total de Mercado (R$)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -221,7 +222,7 @@ export default function AssetsPage() {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full" disabled={createAsset.isPending}>
+                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={createAsset.isPending}>
                   {createAsset.isPending ? (
                     "Salvando..."
                   ) : (
@@ -237,7 +238,8 @@ export default function AssetsPage() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Carteira de Ativos</CardTitle>
+            <CardTitle className="text-foreground/80">Carteira de Ativos</CardTitle>
+            <CardDescription className="text-muted-foreground">Diversificação de ativos financeiros e imobilizados</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -260,33 +262,38 @@ export default function AssetsPage() {
                     <TableRow key={asset.id}>
                       <TableCell>
                         {asset.type === AssetType.IMOBILIZADO ? (
-                          <Building2 className="h-4 w-4 text-orange-500" />
+                          <Building2 className="h-4 w-4 text-purple-600" />
                         ) : (
                           <TrendingUp className="h-4 w-4 text-green-500" />
                         )}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {asset.name}
-                        <div className="text-xs text-muted-foreground">{format(new Date(asset.date), "dd/MM/yyyy")}</div>
+                        <span className="text-foreground/80">{asset.name}</span>
+                        <div className="text-xs text-muted-foreground mt-1">{format(new Date(asset.date), "dd/MM/yyyy")}</div>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {asset.isFinanced ? (
-                          <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
-                            Financ. {asset.installments}x (Entrada:{" "}
+                          <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full">
+                            Financ. {asset.installments}x (Entrada:
                             {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(asset.downPayment))})
                           </span>
                         ) : (
                           "-"
                         )}
                       </TableCell>
-                      <TableCell className="text-right font-bold">
+                      <TableCell className="text-right text-foreground/80 font-semibold">
                         {new Intl.NumberFormat("pt-BR", {
                           style: "currency",
                           currency: "BRL",
                         }).format(asset.value)}
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => deleteAsset.mutate(asset.id!)} className="hover:text-red-500">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteAsset.mutate(asset.id!)}
+                          className="text-foreground/50 rounded-xl hover:text-red-500"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>

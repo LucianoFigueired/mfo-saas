@@ -58,7 +58,7 @@ export default function NewSimulationPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" className="rounded-xl" size="icon" asChild>
           <Link href="/simulations">
             <ArrowLeft className="h-5 w-5" />
           </Link>
@@ -69,9 +69,9 @@ export default function NewSimulationPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="mb-2 border-b-2 pb-6">
               <CardTitle>Parâmetros Iniciais</CardTitle>
-              <CardDescription>Defina as premissas macroeconômicas e o estado inicial da família.</CardDescription>
+              <CardDescription>Defina as premissas macroeconômicas e o estado inicial do patrimônio.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <FormField
@@ -105,7 +105,7 @@ export default function NewSimulationPage() {
                             {...field}
                             onChange={(e) => field.onChange(e.target.valueAsNumber)}
                           />
-                          <span className="absolute right-3 top-2.5 text-sm text-muted-foreground">%</span>
+                          <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
                         </div>
                       </FormControl>
                       <FormDescription>Rentabilidade média acima da inflação.</FormDescription>
@@ -125,7 +125,7 @@ export default function NewSimulationPage() {
                           <FormControl>
                             <Button
                               variant={"outline"}
-                              className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                              className={cn("w-full h-11 rounded-xl px-4 text-left font-normal", !field.value && "text-muted-foreground")}
                             >
                               {field.value ? format(new Date(field.value), "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -135,6 +135,7 @@ export default function NewSimulationPage() {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
+                            locale={ptBR}
                             selected={field.value ? new Date(field.value) : undefined}
                             onSelect={field.onChange}
                             disabled={(date) => date < new Date("1900-01-01")}

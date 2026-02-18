@@ -6,43 +6,62 @@ import { Badge } from "@components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@components/ui/card";
 import { Skeleton } from "@components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
-import { Bot, AlertTriangle, Lightbulb, FileText, Loader2, RefreshCcw } from "lucide-react";
+import { AlertTriangle, Lightbulb, FileText, Loader2, RefreshCcw, BrainCircuit } from "lucide-react";
 
 import { useAiAnalysis } from "@/hooks/useAiAnalysis";
+import { ThinkingLoader } from "@/components/ThinkingLoader";
+import { useEffect, useState } from "react";
 
 export default function AnalysisPage() {
   const params = useParams();
   const simulationId = params.id as string;
   const { analysis, isLoading, isAnalyzing } = useAiAnalysis(simulationId);
 
-  console.log(analysis);
+  const [showThinking, setShowThinking] = useState(true);
+
+  useEffect(() => {
+    if (isAnalyzing) {
+      setShowThinking(true);
+    } else {
+      const timer = setTimeout(() => {
+        setShowThinking(false);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAnalyzing]);
 
   if (isLoading) {
     return <AnalysisSkeleton />;
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 mx-auto">
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-indigo-100 rounded-lg dark:bg-indigo-900/30">
-            <Bot className="h-8 w-8 text-indigo-700 dark:text-indigo-400" />
+            <BrainCircuit className="h-6 w-6 text-indigo-700 dark:text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight mb-1">Diagnóstico Inteligente</h2>
-            <p className="text-md text-muted-foreground">Análise de sensibilidade e riscos baseada no seu cenário atual.</p>
+            <h2 className="text-xl font-bold text-foreground/80 tracking-tight mb-1">Diagnóstico Inteligente</h2>
+            <p className="text-sm text-muted-foreground">Análise de sensibilidade e riscos baseada no seu cenário atual.</p>
           </div>
         </div>
 
-        {isAnalyzing && (
-          <Badge variant="secondary" className="animate-pulse gap-2 py-2 px-4">
+        {showThinking && (
+          <Badge
+            variant="secondary"
+            className="gap-2 py-2 px-4 bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-300 transition-all"
+          >
             <Loader2 className="h-4 w-4 animate-spin" />
-            Processando novos dados...
+            <ThinkingLoader />
           </Badge>
         )}
       </div>
 
-      {!analysis ? (
+      {showThinking && !analysis ? (
+        <AnalysisSkeleton />
+      ) : !analysis ? (
         <Card className="border-dashed">
           <CardContent className="py-10 text-center text-muted-foreground">
             Nenhuma análise gerada ainda. Faça uma simulação para iniciar.

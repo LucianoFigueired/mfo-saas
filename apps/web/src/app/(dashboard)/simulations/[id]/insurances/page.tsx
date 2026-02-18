@@ -74,13 +74,13 @@ export default function InsurancesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Proteção & Seguros</h2>
+        <h2 className="text-xl text-foreground/80 font-bold tracking-tight">Proteção & Seguros</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 h-fit border-t-4 border-t-blue-500">
-          <CardHeader>
-            <CardTitle>Nova Apólice</CardTitle>
+        <Card className="lg:col-span-1 h-fit border-t-5 rounded-t-sm rounded-b-xl border-t-blue-500">
+          <CardHeader className="border-b-2 pb-4">
+            <CardTitle className="text-foreground/80">Nova Apólice</CardTitle>
             <CardDescription>Seguro de Vida ou Invalidez</CardDescription>
           </CardHeader>
           <CardContent>
@@ -185,7 +185,7 @@ export default function InsurancesPage() {
                   <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-md text-sm text-muted-foreground">
                     <CalendarClock className="h-4 w-4" />
                     <span>
-                      Cobertura até: <strong className="text-foreground">{format(endDatePreview, "MMM/yyyy", { locale: ptBR })}</strong>
+                      Cobertura até: <strong className="text-foreground/80">{format(endDatePreview, "MMM/yyyy", { locale: ptBR })}</strong>
                     </span>
                   </div>
                 )}
@@ -205,7 +205,8 @@ export default function InsurancesPage() {
         </Card>
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Apólices Ativas</CardTitle>
+            <CardTitle className="text-foreground/80">Apólices Ativas</CardTitle>
+            <CardDescription>Registro de apólices em vigor e proteção ativa do patrimônio</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -233,11 +234,11 @@ export default function InsurancesPage() {
                         <TableCell>
                           <Icon className={`h-5 w-5 ${status.color}`} />
                         </TableCell>
-                        <TableCell className="font-medium">{ins.name}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
+                        <TableCell className="font-medium text-foreground/80">{ins.name}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(ins.startDate), "MM/yy")} até {format(addMonths(new Date(ins.startDate), ins.duration), "MM/yy")}
                         </TableCell>
-                        <TableCell className="text-right font-bold text-blue-600">
+                        <TableCell className="text-right font-semibold text-foreground/70">
                           {new Intl.NumberFormat("pt-BR", {
                             style: "currency",
                             currency: "BRL",
@@ -258,7 +259,9 @@ export default function InsurancesPage() {
                   })}
 
                   <TableRow className="bg-muted/50 font-bold">
-                    <TableCell colSpan={3}>Cobertura Total em caso de Morte</TableCell>
+                    <TableCell colSpan={3} className="p-4 text-foreground/80">
+                      Cobertura Total em caso de Morte
+                    </TableCell>
                     <TableCell className="text-right text-blue-800">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",

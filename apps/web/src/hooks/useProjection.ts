@@ -1,10 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
+import { CreateVersionDto } from "@mfo-common";
+import { toast } from "sonner";
 
 const PROJECTION_QUERY_KEY = ["projection"];
 
 export const useProjection = (simulationId: string) => {
+  const queryClient = useQueryClient();
   const {
     data: projectionData,
     isLoading,
@@ -24,10 +27,22 @@ export const useProjection = (simulationId: string) => {
     },
   });
 
+  const createNewVersion = useMutation({
+    mutationFn: async (payload: CreateVersionDto) => {
+      return await api.post(`/api/projections/${simulationId}/version`, payload);
+    },
+    onSuccess: () => {
+      toast.success("Nova versão criada.");
+      queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
+    },
+    onError: () => toast.error("Erro ao criar nova versão."),
+  });
+
   return {
     projectionData,
     isLoading,
     isError,
     refetch,
+    createNewVersion,
   };
 };

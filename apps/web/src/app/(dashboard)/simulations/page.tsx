@@ -11,7 +11,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Search, MoreHorizontal, FileText, Trash2 } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, Trash2, ExternalLink, ArchiveRestore } from "lucide-react";
 
 import { useSimulation } from "@/hooks/useSimulations";
 
@@ -21,6 +21,8 @@ export default function SimulationsPage() {
   const router = useRouter();
 
   const { simulations, isLoading, isError } = useSimulation();
+
+  console.log(simulations);
 
   const filteredSimulations = simulations?.filter((sim) => sim.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -43,20 +45,20 @@ export default function SimulationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b-2 pb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">Simulações</h1>
-          <p className="text-muted-foreground">Gerencie o patrimônio e cenários das famílias.</p>
+          <p className="text-muted-foreground">Gerencie as simulações de cenários patrimoniais.</p>
         </div>
-        <Button onClick={() => router.push("/simulations/new")}>
-          <Plus className="mr-2 h-4 w-4" /> Nova Simulação
+        <Button onClick={() => router.push("/simulations/new")} className="font-semibold">
+          <Plus className="mr-2 h-4 w-4" strokeWidth={3} /> Nova Simulação
         </Button>
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nome da família..." className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="relative w-full bg-white max-w-sm">
+          <Search className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar por nome da família..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
@@ -117,7 +119,7 @@ export default function SimulationsPage() {
                 >
                   <TableCell className="font-medium">
                     <div className="flex flex-col">
-                      <span className="text-base">{sim.name}</span>
+                      <span className="text-sm">{sim.name}</span>
                       {sim.description && <span className="text-xs text-muted-foreground">{sim.description}</span>}
                     </div>
                   </TableCell>
@@ -141,11 +143,14 @@ export default function SimulationsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push(`/simulations/${sim.id}/projection`)}>
-                          <FileText className="mr-2 h-4 w-4" /> Abrir Detalhes
+                        <DropdownMenuItem
+                          className="text-muted-foreground cursor-pointer hover:bg-muted"
+                          onClick={() => router.push(`/simulations/${sim.id}/projection`)}
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4 text-muted-foreground" /> Abrir detalhes
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" /> Arquivar
+                        <DropdownMenuItem className="text-red-600 cursor-pointer hover:bg-red-100">
+                          <ArchiveRestore className="mr-2 h-4 w-4 text-red-600" /> Arquivar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

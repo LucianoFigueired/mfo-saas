@@ -8,7 +8,7 @@ export const CreateSimulationSchema = z.object({
 });
 
 export const CreateVersionSchema = z.object({
-  name: z.string().min(3).optional(),
+  name: z.string().optional(),
 });
 
 export const ProjectionQuerySchema = z.object({
@@ -16,7 +16,7 @@ export const ProjectionQuerySchema = z.object({
 });
 
 export const CreateAssetSchema = z.object({
-  name: z.string().min(2),
+  name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
   type: z.enum(["FINANCEIRO", "IMOBILIZADO"]),
   value: z.number().positive("O valor deve ser maior que zero"),
   date: z.string().or(z.date()),
