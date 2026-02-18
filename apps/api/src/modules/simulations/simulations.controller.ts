@@ -23,8 +23,11 @@ export class SimulationsController {
   constructor(private readonly simulationsService: SimulationsService) {}
 
   @Post()
-  @UsePipes(new ZodValidationPipe(CreateSimulationSchema))
-  create(@Body() createSimulationDto: CreateSimulationDto, @Req() req: any) {
+  create(
+    @Body(new ZodValidationPipe(CreateSimulationSchema))
+    createSimulationDto: CreateSimulationDto,
+    @Req() req: any,
+  ) {
     return this.simulationsService.create(createSimulationDto, req.user.userId);
   }
 
@@ -44,10 +47,10 @@ export class SimulationsController {
   }
 
   @Patch(':id')
-  @UsePipes(new ZodValidationPipe(UpdateSimulationSchema))
   update(
     @Param('id') id: string,
-    @Body() updateSimulationDto: UpdateSimulationDto,
+    @Body(new ZodValidationPipe(UpdateSimulationSchema))
+    updateSimulationDto: UpdateSimulationDto,
     @Req() req: any,
   ) {
     return this.simulationsService.update(
