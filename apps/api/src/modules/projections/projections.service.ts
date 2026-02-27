@@ -15,13 +15,15 @@ export class ProjectionsService {
 
   async generate(
     simulationId: string,
-    userId: string,
+    userId: string, // 'userId' representa o Advisor
     statusOverride?: Status,
   ) {
     const simulation = await this.prisma.simulation.findFirst({
       where: {
         id: simulationId,
-        userId: userId,
+        client: {
+          advisorId: userId,
+        },
       },
       include: {
         assets: true,
@@ -93,13 +95,15 @@ export class ProjectionsService {
 
   async createVersion(
     id: string,
-    userId: string,
+    userId: string, // Advisor
     newName?: string,
     isSituationActual = false,
   ) {
-    // Busca a simulação original validando o dono
     const original = await this.prisma.simulation.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        client: { advisorId: userId },
+      },
       include: { assets: true, events: true, insurances: true },
     });
 
@@ -112,38 +116,55 @@ export class ProjectionsService {
     const startDate = isSituationActual ? new Date() : original.startDate;
 
     return this.prisma.$transaction(async (tx) => {
-      if (!isSituationActual && !newName) {
-        await tx.simulation.update({
-          where: { id },
-          data: { isLegacy: true },
-        });
-      }
-
-      return tx.simulation.create({
+      const newVersion = await tx.simulation.create({
         data: {
           name,
           baseTax: original.baseTax,
           startDate,
           status: original.status,
-          userId: userId,
+          clientId: original.clientId,
           version: isSituationActual ? 1 : original.version + 1,
           parentVersionId: original.id,
-          assets: {
-            create: original.assets.map(({ id, simulationId, ...rest }) => ({
-              ...rest,
-            })),
-          },
-          events: {
-            create: original.events.map(({ id, simulationId, ...rest }) => ({
-              ...rest,
-            })),
-          },
-          insurances: {
-            create: original.insurances.map(
-              ({ id, simulationId, ...rest }) => ({ ...rest }),
-            ),
-          },
+          isLegacy: false,
         },
+      });
+
+      if (!isSituationActual) {
+        if (original.assets.length > 0) {
+          await tx.asset.createMany({
+            data: original.assets.map(({ id, simulationId, ...rest }) => ({
+              ...rest,
+              simulationId: newVersion.id,
+            })),
+          });
+        }
+        if (original.events.length > 0) {
+          await tx.event.createMany({
+            data: original.events.map(({ id, simulationId, ...rest }) => ({
+              ...rest,
+              simulationId: newVersion.id,
+            })),
+          });
+        }
+        if (original.insurances.length > 0) {
+          await tx.insurance.createMany({
+            data: original.insurances.map(({ id, simulationId, ...rest }) => ({
+              ...rest,
+              simulationId: newVersion.id,
+            })),
+          });
+        }
+
+        if (!newName) {
+          await tx.simulation.update({
+            where: { id },
+            data: { isLegacy: true },
+          });
+        }
+      }
+
+      return tx.simulation.findUnique({
+        where: { id: newVersion.id },
         include: { assets: true, events: true, insurances: true },
       });
     });
@@ -162,15 +183,12 @@ export class ProjectionsService {
       const eventStart = new Date(event.startDate);
       const eventEnd = event.endDate ? new Date(event.endDate) : null;
 
-      // Verifica se o evento é válido para este ano
-      // Regra: O evento deve ter começado antes do fim deste ano E (não ter fim ou acabar após o início deste ano)
       const isActiveThisYear =
         isBefore(eventStart, yearEnd) &&
         (!eventEnd || isAfter(eventEnd, yearStart));
 
       if (!isActiveThisYear) return;
 
-      // Regras de Status (MFO)
       if (status === 'MORTO' && event.type === 'ENTRADA') return;
 
       let eventValue = new Decimal(event.value);
@@ -191,18 +209,15 @@ export class ProjectionsService {
     return total;
   }
 
-  // Lógica Dinâmica de Seguros
   private calculateActiveInsurancesPayout(
     insurances: any[],
     referenceDate: Date,
   ): Decimal {
     return insurances.reduce((acc, ins) => {
       const startDate = new Date(ins.startDate);
-      // Calcula a data de expiração baseada na duração em meses
       const expirationDate = new Date(startDate);
       expirationDate.setMonth(expirationDate.getMonth() + ins.duration);
 
-      // O seguro só paga se estiver ativo na data de referência (morte)
       const isActive =
         isBefore(startDate, referenceDate) &&
         isAfter(expirationDate, referenceDate);
@@ -212,7 +227,6 @@ export class ProjectionsService {
   }
 
   private calculateInitialWealth(assets: any[], startDate: Date): Decimal {
-    // Agrupar ativos por nome e pegar o mais recente que seja <= startDate
     const latestAssets = new Map<string, any>();
 
     assets.forEach((asset) => {

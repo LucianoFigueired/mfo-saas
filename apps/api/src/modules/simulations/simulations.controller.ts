@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  UsePipes,
+  Query,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -37,8 +37,8 @@ export class SimulationsController {
   }
 
   @Get()
-  findAll(@Req() req: any) {
-    return this.simulationsService.findAll(req.user.userId);
+  findAll(@Req() req: any, @Query('clientId') clientId?: string) {
+    return this.simulationsService.findAll(req.user.userId, clientId);
   }
 
   @Get(':id')

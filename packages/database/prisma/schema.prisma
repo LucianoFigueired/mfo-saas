@@ -20,12 +20,49 @@ model User {
   name     String?
   role     UserRole @default(USER)
 
-  simulations Simulation[]
+  clients Client[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  birthDate DateTime
+
+  advisorId String
+  advisor   User   @relation(fields: [advisorId], references: [id])
+
+  simulations Simulation[]
+  dependents  Dependent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("clients")
+}
+
+model Dependent {
+  id        String   @id @default(uuid())
+  name      String
+  birthDate DateTime
+  relation  String
+
+  client   Client? @relation(fields: [clientId], references: [id])
+  clientId String?
+
+  @@map("dependents")
+}
+
+enum Relation {
+  PARENTE
+  FILHO
+  CONJUGE
 }
 
 model Simulation {
@@ -38,13 +75,12 @@ model Simulation {
 
   aiAnalyses AiAnalysis[]
 
-  // Versionamento
   isLegacy        Boolean @default(false)
   version         Int     @default(1)
   parentVersionId String?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  client   Client? @relation(fields: [clientId], references: [id])
+  clientId String?
 
   assets     Asset[]
   events     Event[]

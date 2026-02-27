@@ -3,6 +3,7 @@ import { z } from "zod";
 export const CreateSimulationSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
   baseTax: z.number().min(0, "A taxa não pode ser negativa").max(100, "A taxa deve ser em porcentagem (ex: 4.5)"),
+  clientId: z.string().uuid(),
   startDate: z.string().or(z.date()),
   status: z.enum(["VIVO", "MORTO", "INVALIDO"]).default("VIVO"),
 });
@@ -54,6 +55,13 @@ export const LoginSchema = z.object({
   password: z.string(),
 });
 
+export const CreateClientSchema = z.object({
+  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("E-mail inválido").optional().or(z.literal("")),
+  phone: z.string().optional(),
+  birthDate: z.string().datetime().optional().nullable(),
+});
+
 export const UpdateSimulationSchema = CreateSimulationSchema.partial();
 export const UpdateAssetSchema = CreateAssetSchema.partial();
 export const UpdateEventSchema = CreateEventSchema.partial();
@@ -71,3 +79,4 @@ export type CreateInsuranceDto = z.infer<typeof CreateInsuranceSchema>;
 export type UpdateInsuranceDto = z.infer<typeof UpdateInsuranceSchema>;
 export type RegisterDto = z.infer<typeof RegisterSchema>;
 export type LoginDto = z.infer<typeof LoginSchema>;
+export type CreateClientDto = z.infer<typeof CreateClientSchema>;
