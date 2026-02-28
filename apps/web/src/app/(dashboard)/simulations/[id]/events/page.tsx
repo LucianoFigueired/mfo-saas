@@ -40,7 +40,6 @@ export default function EventsPage() {
   const isIncome = currentType === "ENTRADA";
 
   const onSubmit = (data: CreateEventDto) => {
-    console.log(data);
     const payload = {
       ...data,
       startDate: new Date(data.startDate),

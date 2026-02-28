@@ -112,6 +112,7 @@ export default function ProjectionPage() {
                   tickLine={false}
                   axisLine={false}
                   tickMargin={12}
+                  tick={{ fontSize: "14px" }}
                   className="text-xs font-medium text-muted-foreground"
                 />
                 <YAxis
@@ -119,6 +120,7 @@ export default function ProjectionPage() {
                   tickLine={false}
                   axisLine={false}
                   tickMargin={12}
+                  tick={{ fontSize: "14px" }}
                   className="text-xs font-medium text-muted-foreground"
                 />
                 <Tooltip

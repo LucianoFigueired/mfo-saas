@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Button } from "@components/ui/button";
@@ -23,9 +23,13 @@ import { toast } from "sonner";
 import { cn } from "@/components/@repo/@mfo/common/lib/utils";
 
 import { useSimulation } from "@/hooks/useSimulations";
+import { useEffect } from "react";
 
 export default function NewSimulationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const clientId = searchParams.get("clientId");
 
   const { createSimulation } = useSimulation();
 
@@ -39,11 +43,24 @@ export default function NewSimulationPage() {
     },
   });
 
+  useEffect(() => {
+    if (clientId) {
+      form.setValue("clientId", clientId);
+    }
+  }, [clientId, form]);
+
   async function onSubmit(data: CreateSimulationDto) {
+    if (!clientId) {
+      toast.error("Erro: Nenhum cliente selecionado para esta simulação");
+      return;
+    }
     const payload = {
       ...data,
       baseTax: Number(data.baseTax) / 100,
+      clientId: clientId || "",
     };
+
+    console.log(payload);
 
     createSimulation.mutate(payload, {
       onSuccess: (response) => {
@@ -58,30 +75,28 @@ export default function NewSimulationPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" className="rounded-xl" size="icon" asChild>
-          <Link href="/simulations">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
+        <Button variant="ghost" className="rounded-xl" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight">Nova Simulação</h1>
+        <h1 className="text-xl font-bold tracking-tight text-foreground/80">Nova Simulação</h1>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>
-            <CardHeader className="mb-2 border-b-2 pb-6">
-              <CardTitle>Parâmetros Iniciais</CardTitle>
-              <CardDescription>Defina as premissas macroeconômicas e o estado inicial do patrimônio.</CardDescription>
+            <CardHeader className="mb-2 border-b-2 pt-2 pb-4">
+              <CardTitle className="text-foreground/80">Parâmetros Iniciais</CardTitle>
+              <CardDescription>Defina algumas informações iniciais da simulação</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome da Família / Cenário</FormLabel>
+                    <FormLabel>Nome do Cenário</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Família Silva - Cenário Conservador" {...field} />
+                      <Input placeholder="Ex: Cenário Conservador" {...field} />
                     </FormControl>
                     <FormDescription>Use um nome que facilite a busca posteriormente.</FormDescription>
                     <FormMessage />

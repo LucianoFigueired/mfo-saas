@@ -15,7 +15,7 @@ import {
   SidebarFooter,
   SidebarRail,
 } from "@components/ui/sidebar";
-import { PieChart, Users, Wallet, Activity, LogOut } from "lucide-react";
+import { Users, Wallet, Activity, LogOut, ChartArea } from "lucide-react";
 
 import NamedLogo from "@assets/named-logo.svg";
 import Logo from "@assets/square-logo.svg";
@@ -25,14 +25,15 @@ import Image from "next/image";
 
 const items = [
   {
-    title: "Visão Geral",
-    url: "/dashboard",
-    icon: PieChart,
+    title: "Clientes",
+    url: "/clients",
+    icon: Users,
   },
+
   {
     title: "Simulações",
     url: "/simulations",
-    icon: Users,
+    icon: ChartArea,
   },
   {
     title: "Gestão de Ativos",

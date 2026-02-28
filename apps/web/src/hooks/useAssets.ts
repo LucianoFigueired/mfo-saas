@@ -11,7 +11,7 @@ const PROJECTION_QUERY_KEY = ["projection"];
 
 export const useAssets = (simulationId: string) => {
   const queryClient = useQueryClient();
-  const { notifyAnalysisStarted } = useAiAnalysis(simulationId);
+  const { markAnalysisAsStale } = useAiAnalysis(simulationId);
 
   const { data: assets, isLoading } = useQuery({
     queryKey: [ASSETS_QUERY_KEY, simulationId],
@@ -28,7 +28,7 @@ export const useAssets = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Ativo adicionado com sucesso!");
-      notifyAnalysisStarted();
+      markAnalysisAsStale();
       queryClient.invalidateQueries({ queryKey: [ASSETS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },
@@ -41,7 +41,7 @@ export const useAssets = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Ativo removido.");
-      notifyAnalysisStarted();
+      markAnalysisAsStale();
       queryClient.invalidateQueries({ queryKey: [ASSETS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },
@@ -54,7 +54,7 @@ export const useAssets = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Ativo atualizado.");
-      notifyAnalysisStarted();
+      markAnalysisAsStale();
       queryClient.invalidateQueries({ queryKey: [ASSETS_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },

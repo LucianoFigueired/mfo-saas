@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { SidebarProvider, SidebarTrigger } from "@components/ui/sidebar";
 
 import {
@@ -12,6 +15,16 @@ import { Separator } from "@/components/@repo/@mfo/common/components/ui/separato
 import { AppSidebar } from "@/components/AppSidebar";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  let pageTitle = "Dashboard";
+
+  if (pathname?.includes("clients")) {
+    pageTitle = "Clientes";
+  } else if (pathname?.includes("simulation")) {
+    pageTitle = "Simulações";
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -22,11 +35,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Zelo</BreadcrumbLink>
+                <BreadcrumbLink href="/">Zelo</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Simulações</BreadcrumbPage>
+                <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

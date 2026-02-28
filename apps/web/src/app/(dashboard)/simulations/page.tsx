@@ -11,7 +11,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Search, MoreHorizontal, FileText, Trash2, ExternalLink, ArchiveRestore } from "lucide-react";
+import { Plus, Search, MoreHorizontal, ExternalLink, ArchiveRestore } from "lucide-react";
 
 import { useSimulation } from "@/hooks/useSimulations";
 
@@ -21,8 +21,6 @@ export default function SimulationsPage() {
   const router = useRouter();
 
   const { simulations, isLoading, isError } = useSimulation();
-
-  console.log(simulations);
 
   const filteredSimulations = simulations?.filter((sim) => sim.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -47,7 +45,7 @@ export default function SimulationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between border-b-2 pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Simulações</h1>
+          <h1 className="text-2xl font-bold tracking-tight mb-2">Simulações</h1>
           <p className="text-muted-foreground">Gerencie as simulações de cenários patrimoniais.</p>
         </div>
         <Button onClick={() => router.push("/simulations/new")} className="font-semibold">
@@ -119,7 +117,7 @@ export default function SimulationsPage() {
                 >
                   <TableCell className="font-medium">
                     <div className="flex flex-col">
-                      <span className="text-sm">{sim.name}</span>
+                      <span className="text-sm">{`${sim.client.name} - ${sim.name}`}</span>
                       {sim.description && <span className="text-xs text-muted-foreground">{sim.description}</span>}
                     </div>
                   </TableCell>

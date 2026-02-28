@@ -10,7 +10,7 @@ const PROJECTION_QUERY_KEY = ["projection"];
 
 export const useInsurances = (simulationId: string) => {
   const queryClient = useQueryClient();
-  const { notifyAnalysisStarted } = useAiAnalysis(simulationId);
+  const { markAnalysisAsStale } = useAiAnalysis(simulationId);
 
   const { data: insurances, isLoading } = useQuery({
     queryKey: [INSURANCES_QUERY_KEY, simulationId],
@@ -27,7 +27,7 @@ export const useInsurances = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Apólice salva com sucesso!");
-      notifyAnalysisStarted();
+      markAnalysisAsStale();
       queryClient.invalidateQueries({ queryKey: [INSURANCES_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },
@@ -40,7 +40,7 @@ export const useInsurances = (simulationId: string) => {
     },
     onSuccess: () => {
       toast.success("Apólice removida.");
-      notifyAnalysisStarted();
+      markAnalysisAsStale();
       queryClient.invalidateQueries({ queryKey: [INSURANCES_QUERY_KEY, simulationId] });
       queryClient.invalidateQueries({ queryKey: [PROJECTION_QUERY_KEY, simulationId] });
     },

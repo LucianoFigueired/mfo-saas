@@ -56,7 +56,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" className="rounded-xl cursor-pointer" size="icon" onClick={() => router.push("/simulations")}>
+            <Button variant="ghost" className="rounded-xl cursor-pointer" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
