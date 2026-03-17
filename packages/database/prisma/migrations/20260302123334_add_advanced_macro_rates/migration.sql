@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Simulation" ADD COLUMN     "inflation" DECIMAL(10,4) NOT NULL DEFAULT 0.04,
+ADD COLUMN     "realEstateRate" DECIMAL(10,4) NOT NULL DEFAULT 0.05,
+ADD COLUMN     "successionTax" DECIMAL(10,4) NOT NULL DEFAULT 0.15;

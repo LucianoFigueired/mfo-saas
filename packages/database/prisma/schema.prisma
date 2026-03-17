@@ -66,12 +66,18 @@ enum Relation {
 }
 
 model Simulation {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  baseTax     Decimal  @db.Decimal(10, 4)
-  startDate   DateTime
-  status      Status   @default(VIVO)
+
+  // Taxas Macroeconomicas
+  baseTax        Decimal @db.Decimal(10, 4)
+  inflation      Decimal @default(0.04) @db.Decimal(10, 4) // IPCA médio projetado
+  realEstateRate Decimal @default(0.05) @db.Decimal(10, 4) // Taxa de valorização de imóvel
+  successionTax  Decimal @default(0.15) @db.Decimal(10, 4) // ITCMD + Custos Advocaticios 
+
+  startDate DateTime
+  status    Status   @default(VIVO)
 
   aiAnalyses AiAnalysis[]
 
@@ -116,7 +122,6 @@ model Asset {
   value Decimal   @db.Decimal(15, 2)
   date  DateTime
 
-  // Para bens imobilizados/financiados
   isFinanced   Boolean  @default(false)
   installments Int?
   interestRate Decimal? @db.Decimal(10, 4)
@@ -158,9 +163,9 @@ enum Frequency {
 model Insurance {
   id           String   @id @default(uuid())
   name         String
-  premium      Decimal  @db.Decimal(15, 2) // Valor mensal pago
-  insuredValue Decimal  @db.Decimal(15, 2) // Valor a receber
-  duration     Int // Em meses
+  premium      Decimal  @db.Decimal(15, 2)
+  insuredValue Decimal  @db.Decimal(15, 2)
+  duration     Int
   startDate    DateTime
 
   simulationId String

@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { Decimal } from 'decimal.js';
 import { isBefore, isAfter, endOfYear, startOfYear } from 'date-fns';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ProjectionGeneratedEvent } from './events/projection-generated.event';
+import { Decimal } from 'decimal.js';
 import { Status } from '@mfo/database';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
+import { PrismaService } from '../../prisma/prisma.service';
+import { ProjectionGeneratedEvent } from './events/projection-generated.event';
 
 @Injectable()
 export class ProjectionsService {
@@ -15,7 +16,7 @@ export class ProjectionsService {
 
   async generate(
     simulationId: string,
-    userId: string, // 'userId' representa o Advisor
+    userId: string, // Advisor
     statusOverride?: Status,
   ) {
     const simulation = await this.prisma.simulation.findFirst({
@@ -40,7 +41,19 @@ export class ProjectionsService {
     const endYear = 2060;
     const results: any[] = [];
 
-    let currentWealth = this.calculateInitialWealth(
+    const inflationRate = (simulation as any).inflation
+      ? new Decimal((simulation as any).inflation)
+      : new Decimal(0.04);
+    const financialRate = new Decimal(simulation.baseTax);
+    const realEstateRate = (simulation as any).realEstateRate
+      ? new Decimal((simulation as any).realEstateRate)
+      : new Decimal(0.05);
+    const successionTaxRate = (simulation as any).successionTax
+      ? new Decimal((simulation as any).successionTax)
+      : new Decimal(0.15);
+
+    // 1. Separa o patrimônio inicial por Classe de Ativo
+    let { financial, realEstate } = this.calculateInitialWealthByClass(
       simulation.assets,
       simulation.startDate,
     );
@@ -48,47 +61,78 @@ export class ProjectionsService {
     for (let year = startYear; year <= endYear; year++) {
       const yearStart = startOfYear(new Date(year, 0, 1));
 
-      // 1. Calcular Fluxo de Caixa considerando validade dos eventos
+      // 2. Calcular Fluxo de Caixa (Entradas - Saídas)
       const yearlyCashFlow = this.calculateYearlyCashFlow(
         simulation.events,
         year,
         status,
       );
 
-      // 2. Somar Seguros Ativos (apenas se MORTO e no ano da simulação)
       let insurancePayout = new Decimal(0);
+      let successionCost = new Decimal(0);
+
+      // 3. Regra de Sucessão: Morte dispara Seguro + Impostos (ITCMD)
       if (status === 'MORTO' && year === startYear) {
         insurancePayout = this.calculateActiveInsurancesPayout(
           simulation.insurances,
           simulation.startDate,
         );
+
+        // O prêmio do seguro entra como liquidez financeira
+        financial = financial.plus(insurancePayout);
+
+        // ITCMD incide sobre o patrimônio bruto (Imóveis + Financeiro)
+        const grossEstate = financial.plus(realEstate);
+        successionCost = grossEstate.times(successionTaxRate);
+
+        // A mordida da sucessão corrói a liquidez da família (dinheiro em conta)
+        financial = financial.minus(successionCost);
       }
 
-      // 3. Atualizar patrimônio: (Saldo + Fluxo + Seguro)
-      currentWealth = currentWealth.plus(yearlyCashFlow).plus(insurancePayout);
+      // 4. O Fluxo de caixa anual aumenta ou consome o caixa financeiro
+      financial = financial.plus(yearlyCashFlow);
 
-      // 4. Aplicar Juros Compostos (Taxa Real)
-      const growthFactor = new Decimal(1).plus(simulation.baseTax);
-      currentWealth = currentWealth.times(growthFactor);
+      // 5. Total do Patrimônio Nominal (Dinheiro de padeiro)
+      const nominalWealth = financial.plus(realEstate);
 
+      // 6. Total do Patrimônio Real (Descontando a Inflação IPCA)
+      const yearsPassed = year - startYear;
+      const inflationFactor = new Decimal(1)
+        .plus(inflationRate)
+        .pow(yearsPassed);
+      const realWealth = nominalWealth.div(inflationFactor);
+
+      // 7. Salva o snapshot do ano
       results.push({
         year,
-        wealth: currentWealth.toFixed(2),
+        wealth: nominalWealth.toFixed(2), // Nominal (Mantido para não quebrar o frontend atual)
+        realWealth: realWealth.toFixed(2), // Real (Novo!)
+        financialWealth: financial.toFixed(2),
+        realEstateWealth: realEstate.toFixed(2),
         cashFlow: yearlyCashFlow.toFixed(2),
         insuranceReceived: insurancePayout.isZero()
           ? undefined
           : insurancePayout.toFixed(2),
+        successionCost: successionCost.isZero()
+          ? undefined
+          : successionCost.toFixed(2),
       });
+
+      // 8. Aplica Juros Compostos para o ANO SEGUINTE (Cada classe com sua taxa)
+      financial = financial.times(new Decimal(1).plus(financialRate));
+      realEstate = realEstate.times(new Decimal(1).plus(realEstateRate));
     }
 
-    this.eventEmitter.emit(
-      'projection.generated',
-      new ProjectionGeneratedEvent(simulationId, userId, results, {
-        name: simulation.name,
-        baseTax: simulation.baseTax.toNumber(),
-        status: status,
-      }),
-    );
+    console.log(results);
+
+    // this.eventEmitter.emit(
+    //   'projection.generated',
+    //   new ProjectionGeneratedEvent(simulationId, userId, results, {
+    //     name: simulation.name,
+    //     baseTax: simulation.baseTax.toNumber(),
+    //     status: status,
+    //   }),
+    // );
 
     return results;
   }
@@ -126,6 +170,11 @@ export class ProjectionsService {
           version: isSituationActual ? 1 : original.version + 1,
           parentVersionId: original.id,
           isLegacy: false,
+
+          // Clonando as novas taxas
+          inflation: (original as any).inflation,
+          realEstateRate: (original as any).realEstateRate,
+          successionTax: (original as any).successionTax,
         },
       });
 
@@ -226,7 +275,10 @@ export class ProjectionsService {
     }, new Decimal(0));
   }
 
-  private calculateInitialWealth(assets: any[], startDate: Date): Decimal {
+  private calculateInitialWealthByClass(
+    assets: any[],
+    startDate: Date,
+  ): { financial: Decimal; realEstate: Decimal } {
     const latestAssets = new Map<string, any>();
 
     assets.forEach((asset) => {
@@ -241,9 +293,17 @@ export class ProjectionsService {
       }
     });
 
-    return Array.from(latestAssets.values()).reduce(
-      (acc, asset) => acc.plus(new Decimal(asset.value)),
-      new Decimal(0),
-    );
+    let financial = new Decimal(0);
+    let realEstate = new Decimal(0);
+
+    Array.from(latestAssets.values()).forEach((asset) => {
+      if (asset.type === 'IMOBILIZADO') {
+        realEstate = realEstate.plus(new Decimal(asset.value));
+      } else {
+        financial = financial.plus(new Decimal(asset.value));
+      }
+    });
+
+    return { financial, realEstate };
   }
 }
