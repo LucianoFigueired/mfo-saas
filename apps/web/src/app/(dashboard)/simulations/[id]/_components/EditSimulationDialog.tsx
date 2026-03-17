@@ -14,7 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { CreateSimulationDto, CreateSimulationSchema } from "@mfo-common";
-import { useForm } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -25,14 +25,25 @@ import { api } from "@/lib/api";
 interface EditSimulationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  simulation: any;
+  simulation: {
+    id: string;
+    name: string;
+    baseTax: string | number;
+    inflation?: string | number | null;
+    realEstateRate?: string | number | null;
+    successionTax?: string | number | null;
+    status: "VIVO" | "MORTO" | "INVALIDO";
+    startDate: string;
+    clientId?: string | null;
+    client: { id: string };
+  };
 }
 
 export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSimulationDialogProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<CreateSimulationDto>({
-    resolver: zodResolver(CreateSimulationSchema) as any,
+    resolver: zodResolver(CreateSimulationSchema) as unknown as Resolver<CreateSimulationDto>,
     defaultValues: {
       name: "",
       baseTax: 0,
@@ -45,13 +56,16 @@ export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSim
     if (simulation.clientId) {
       form.setValue("clientId", simulation.client.id);
     }
-  }, [simulation.client.id, form]);
+  }, [simulation.client.id, simulation.clientId, form]);
 
   useEffect(() => {
     if (simulation && open) {
       form.reset({
         name: simulation.name,
         baseTax: Number(simulation.baseTax) * 100,
+        inflation: Number(simulation.inflation ?? 0.04) * 100,
+        realEstateRate: Number(simulation.realEstateRate ?? 0.05) * 100,
+        successionTax: Number(simulation.successionTax ?? 0.15) * 100,
         status: simulation.status,
         clientId: simulation.client.id,
         startDate: simulation.startDate,
@@ -65,6 +79,9 @@ export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSim
         ...data,
         clientId: data.clientId,
         baseTax: Number(data.baseTax) / 100,
+        inflation: data.inflation !== undefined ? Number(data.inflation) / 100 : undefined,
+        realEstateRate: data.realEstateRate !== undefined ? Number(data.realEstateRate) / 100 : undefined,
+        successionTax: data.successionTax !== undefined ? Number(data.successionTax) / 100 : undefined,
       };
       await api.patch(`/api/simulations/${simulation.id}`, payload);
     },
@@ -114,6 +131,29 @@ export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSim
                 render={({ field }) => (
                   <FormItem className="col-span-2">
                     <FormLabel>Taxa Real (% a.a.)</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="pr-8"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        />
+                        <span className="absolute right-3 top-3.5 text-xs text-muted-foreground">%</span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="inflation"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel>IPCA (% a.a.)</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -189,6 +229,54 @@ export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSim
                       </SelectContent>
                     </Select>
                     <FormDescription className="text-xs">Define regras de sucessão e seguros.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-baseline">
+              <FormField
+                control={form.control}
+                name="realEstateRate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valorização Imóveis (% a.a.)</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="pr-8"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        />
+                        <span className="absolute right-3 top-3.5 text-xs text-muted-foreground">%</span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="successionTax"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ITCMD + Custos (% do patrimônio)</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="pr-8"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        />
+                        <span className="absolute right-3 top-3.5 text-xs text-muted-foreground">%</span>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

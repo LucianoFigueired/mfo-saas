@@ -16,7 +16,7 @@ import { ptBR } from "date-fns/locale/pt-BR";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Save, CalendarIcon } from "lucide-react";
 import { CreateSimulationDto, CreateSimulationSchema } from "@mfo-common";
-import { useForm } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { cn } from "@/components/@repo/@mfo/common/lib/utils";
@@ -25,6 +25,8 @@ import { useSimulation } from "@/hooks/useSimulations";
 import { useEffect } from "react";
 import { useClients } from "@/hooks/useClients";
 import { Client } from "@/types/client";
+import { useScenarioTemplates } from "@/hooks/useScenarioTemplates";
+import { ScenarioTemplate } from "@/types/scenarioTemplate";
 
 export default function NewSimulationPage() {
   const router = useRouter();
@@ -34,12 +36,16 @@ export default function NewSimulationPage() {
 
   const { createSimulation } = useSimulation();
   const { clients } = useClients();
+  const { templates } = useScenarioTemplates();
 
   const form = useForm<CreateSimulationDto>({
-    resolver: zodResolver(CreateSimulationSchema) as any,
+    resolver: zodResolver(CreateSimulationSchema) as unknown as Resolver<CreateSimulationDto>,
     defaultValues: {
       name: "",
       baseTax: 4.0,
+      inflation: 4.0,
+      realEstateRate: 5.0,
+      successionTax: 15.0,
       status: "VIVO",
       startDate: new Date().toISOString().split("T")[0],
     },
@@ -59,6 +65,9 @@ export default function NewSimulationPage() {
     const payload = {
       ...data,
       baseTax: Number(data.baseTax) / 100,
+      inflation: data.inflation !== undefined ? Number(data.inflation) / 100 : undefined,
+      realEstateRate: data.realEstateRate !== undefined ? Number(data.realEstateRate) / 100 : undefined,
+      successionTax: data.successionTax !== undefined ? Number(data.successionTax) / 100 : undefined,
       clientId: clientId || "",
     };
 
@@ -89,6 +98,34 @@ export default function NewSimulationPage() {
               <CardDescription>Defina algumas informações iniciais da simulação</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-baseline">
+                <FormItem className="col-span-1 md:col-span-2">
+                  <FormLabel>Template de Cenário (opcional)</FormLabel>
+                  <Select
+                    onValueChange={(templateId) => {
+                      const tpl = (templates || []).find((t: ScenarioTemplate) => t.id === templateId);
+                      if (!tpl) return;
+                      form.setValue("baseTax", Number(tpl.baseTax) * 100);
+                      form.setValue("inflation", Number(tpl.inflation) * 100);
+                      form.setValue("realEstateRate", Number(tpl.realEstateRate) * 100);
+                      form.setValue("successionTax", Number(tpl.successionTax) * 100);
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full min-h-11 rounded-xl">
+                        <SelectValue placeholder="Selecione um template para preencher automaticamente" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(templates || []).map((t: ScenarioTemplate) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-baseline">
                 <FormField
                   control={form.control}
@@ -185,6 +222,80 @@ export default function NewSimulationPage() {
                           />
                         </PopoverContent>
                       </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="inflation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>IPCA (% a.a.)</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="pr-8"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
+                          <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
+                        </div>
+                      </FormControl>
+                      <FormDescription>Inflação média projetada.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="realEstateRate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valorização de Imóvel (% a.a.)</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="pr-8"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
+                          <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
+                        </div>
+                      </FormControl>
+                      <FormDescription>Taxa de valorização do patrimônio imobiliário.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="successionTax"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ITCMD + Custos (% do patrimônio)</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="pr-8"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
+                          <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
+                        </div>
+                      </FormControl>
+                      <FormDescription>Alíquota aplicada na sucessão (morte).</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
