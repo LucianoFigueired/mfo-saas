@@ -21,6 +21,7 @@ export const useProjection = (simulationId: string) => {
       return response.data.map((item: any) => ({
         year: item.year,
         wealth: parseFloat(item.wealth),
+        realWealth: item.realWealth ? parseFloat(item.realWealth) : parseFloat(item.wealth),
         cashFlow: parseFloat(item.cashFlow),
         insuranceReceived: item.insuranceReceived ? parseFloat(item.insuranceReceived) : 0,
       }));

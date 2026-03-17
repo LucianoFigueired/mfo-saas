@@ -2,19 +2,23 @@
 
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { ArrowLeft, GitBranch, SquarePen } from "lucide-react";
+import { ArrowLeft, Forward, GitBranch, SquarePen } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useReactToPrint } from "react-to-print";
 
 import { EditSimulationDialog } from "./_components/EditSimulationDialog";
 import { NewVersionDialog } from "./_components/NewVersionDialog";
+import { SimulationReport } from "./_components/SimulationReport";
 
 import { cn } from "@/components/@repo/@mfo/common/lib/utils";
+
 import { api } from "@/lib/api";
+import { useProjection } from "@/hooks/useProjection";
 
 export default function SimulationLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
@@ -25,12 +29,21 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isNewVersionOpen, setIsNewVersionOpen] = useState(false);
 
+  const reportRef = useRef<HTMLDivElement>(null);
+
   const { data: simulation, isLoading } = useQuery({
     queryKey: ["simulation", simulationId],
     queryFn: async () => {
       const res = await api.get(`/api/simulations/${simulationId}`);
       return res.data;
     },
+  });
+
+  const { projectionData } = useProjection(simulationId);
+
+  const handlePrint = useReactToPrint({
+    contentRef: reportRef,
+    documentTitle: `Relatorio_Zelo_${simulation?.name || "Patrimonio"}`,
   });
 
   if (isLoading) {
@@ -53,6 +66,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
         simulationId={simulationId}
       />
 
+      <SimulationReport ref={reportRef} simulation={simulation} projectionData={projectionData || []} />
       <div className="flex flex-col gap-4 border-b pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -60,7 +74,7 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-foreground/80 tracking-tight flex items-center gap-2">
+              <h1 className="text-xl font-bold text-foreground/80 tracking-tight flex items-c enter gap-2">
                 {simulation.name}
                 <Badge className="ml-2 px-4 py-1 font-bold" variant={simulation.status === "VIVO" ? "default" : "destructive"}>
                   {simulation.status}
@@ -75,6 +89,10 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
           </div>
 
           <div className="flex items-center gap-2">
+            <Button className="text-white bg-emerald-500 border-emerald-500" variant="outline" size="sm" onClick={() => handlePrint()}>
+              <Forward className="mr-2 h-4 w-4 text-white" />
+              Exportar
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setIsNewVersionOpen(true)}>
               <GitBranch className="mr-2 h-4 w-4" />
               Nova Versão
