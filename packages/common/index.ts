@@ -3,9 +3,33 @@ import { z } from "zod";
 export const CreateSimulationSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
   baseTax: z.number().min(0, "A taxa não pode ser negativa").max(100, "A taxa deve ser em porcentagem (ex: 4.5)"),
+  inflation: z
+    .number()
+    .min(0, "A inflação não pode ser negativa")
+    .max(100, "A inflação deve ser em porcentagem (ex: 4.0)")
+    .optional(),
+  realEstateRate: z
+    .number()
+    .min(0, "A taxa de imóveis não pode ser negativa")
+    .max(100, "A taxa deve ser em porcentagem (ex: 5.0)")
+    .optional(),
+  successionTax: z
+    .number()
+    .min(0, "A alíquota de sucessão não pode ser negativa")
+    .max(100, "A taxa deve ser em porcentagem (ex: 15.0)")
+    .optional(),
   clientId: z.string().uuid(),
   startDate: z.string().or(z.date()),
   status: z.enum(["VIVO", "MORTO", "INVALIDO"]).default("VIVO"),
+});
+
+export const CreateScenarioTemplateSchema = z.object({
+  name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
+  description: z.string().optional(),
+  baseTax: z.number().min(0).max(100),
+  inflation: z.number().min(0).max(100),
+  realEstateRate: z.number().min(0).max(100),
+  successionTax: z.number().min(0).max(100),
 });
 
 export const CreateVersionSchema = z.object({
@@ -63,15 +87,18 @@ export const CreateClientSchema = z.object({
 });
 
 export const UpdateSimulationSchema = CreateSimulationSchema.partial();
+export const UpdateScenarioTemplateSchema = CreateScenarioTemplateSchema.partial();
 export const UpdateAssetSchema = CreateAssetSchema.partial();
 export const UpdateEventSchema = CreateEventSchema.partial();
 export const UpdateInsuranceSchema = CreateInsuranceSchema.partial();
 
 export type CreateSimulationDto = z.infer<typeof CreateSimulationSchema>;
+export type CreateScenarioTemplateDto = z.infer<typeof CreateScenarioTemplateSchema>;
 export type CreateAssetDto = z.infer<typeof CreateAssetSchema>;
 export type CreateVersionDto = z.infer<typeof CreateVersionSchema>;
 export type ProjectionQueryDto = z.infer<typeof ProjectionQuerySchema>;
 export type UpdateSimulationDto = z.infer<typeof UpdateSimulationSchema>;
+export type UpdateScenarioTemplateDto = z.infer<typeof UpdateScenarioTemplateSchema>;
 export type UpdateAssetDto = z.infer<typeof UpdateAssetSchema>;
 export type CreateEventDto = z.infer<typeof CreateEventSchema>;
 export type UpdateEventDto = z.infer<typeof UpdateEventSchema>;

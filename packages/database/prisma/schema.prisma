@@ -21,6 +21,7 @@ model User {
   role     UserRole @default(USER)
 
   clients Client[]
+  scenarioTemplates ScenarioTemplate[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,6 +95,27 @@ model Simulation {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ScenarioTemplate {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  // Taxas Macroeconomicas (armazenadas em formato decimal, ex: 0.04)
+  baseTax        Decimal @db.Decimal(10, 4)
+  inflation      Decimal @default(0.04) @db.Decimal(10, 4)
+  realEstateRate Decimal @default(0.05) @db.Decimal(10, 4)
+  successionTax  Decimal @default(0.15) @db.Decimal(10, 4)
+
+  advisorId String
+  advisor   User @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("scenario_templates")
+  @@index([advisorId])
 }
 
 model AiAnalysis {

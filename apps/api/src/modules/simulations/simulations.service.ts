@@ -19,6 +19,9 @@ export class SimulationsService {
       data: {
         name: dto.name,
         baseTax: dto.baseTax,
+        inflation: dto.inflation,
+        realEstateRate: dto.realEstateRate,
+        successionTax: dto.successionTax,
         status: dto.status,
         clientId: dto.clientId,
         startDate: new Date(dto.startDate),
@@ -93,6 +96,9 @@ export class SimulationsService {
       data: {
         name: dto.name,
         baseTax: dto.baseTax,
+        inflation: dto.inflation,
+        realEstateRate: dto.realEstateRate,
+        successionTax: dto.successionTax,
         status: dto.status,
         clientId: dto.clientId,
         startDate: dto.startDate ? new Date(dto.startDate) : undefined,
