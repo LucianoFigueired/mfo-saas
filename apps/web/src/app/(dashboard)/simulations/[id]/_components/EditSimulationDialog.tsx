@@ -42,11 +42,18 @@ export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSim
   });
 
   useEffect(() => {
+    if (simulation.clientId) {
+      form.setValue("clientId", simulation.client.id);
+    }
+  }, [simulation.client.id, form]);
+
+  useEffect(() => {
     if (simulation && open) {
       form.reset({
         name: simulation.name,
         baseTax: Number(simulation.baseTax) * 100,
         status: simulation.status,
+        clientId: simulation.client.id,
         startDate: simulation.startDate,
       });
     }
@@ -56,6 +63,7 @@ export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSim
     mutationFn: async (data: CreateSimulationDto) => {
       const payload = {
         ...data,
+        clientId: data.clientId,
         baseTax: Number(data.baseTax) / 100,
       };
       await api.patch(`/api/simulations/${simulation.id}`, payload);
@@ -84,6 +92,7 @@ export function EditSimulationDialog({ open, onOpenChange, simulation }: EditSim
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <input type="hidden" {...form.register("clientId")} />
             <FormField
               control={form.control}
               name="name"

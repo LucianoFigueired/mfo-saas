@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
@@ -24,6 +23,8 @@ import { cn } from "@/components/@repo/@mfo/common/lib/utils";
 
 import { useSimulation } from "@/hooks/useSimulations";
 import { useEffect } from "react";
+import { useClients } from "@/hooks/useClients";
+import { Client } from "@/types/client";
 
 export default function NewSimulationPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function NewSimulationPage() {
   const clientId = searchParams.get("clientId");
 
   const { createSimulation } = useSimulation();
+  const { clients } = useClients();
 
   const form = useForm<CreateSimulationDto>({
     resolver: zodResolver(CreateSimulationSchema) as any,
@@ -60,8 +62,6 @@ export default function NewSimulationPage() {
       clientId: clientId || "",
     };
 
-    console.log(payload);
-
     createSimulation.mutate(payload, {
       onSuccess: (response) => {
         router.push(`/simulations/${response.id}/projection`);
@@ -89,21 +89,49 @@ export default function NewSimulationPage() {
               <CardDescription>Defina algumas informações iniciais da simulação</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Cenário</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Cenário Conservador" {...field} />
-                    </FormControl>
-                    <FormDescription>Use um nome que facilite a busca posteriormente.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-baseline">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className={clientId ? "col-span-2" : "col-span-1"}>
+                      <FormLabel>Nome do Cenário</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Cenário Conservador" {...field} />
+                      </FormControl>
+                      <FormDescription>Use um nome que facilite a busca posteriormente.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {!clientId && (
+                  <FormField
+                    control={form.control}
+                    name="clientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cliente</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="w-full min-h-11 rounded-xl">
+                              <SelectValue placeholder="Selecione o cliente/família" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {clients &&
+                              clients.map((client: Client) => (
+                                <SelectItem key={client.id} value={client.id}>
+                                  {client.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
-
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -171,7 +199,7 @@ export default function NewSimulationPage() {
                     <FormLabel>Status do Patriarca/Matriarca</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="min-h-11 rounded-xl">
                           <SelectValue placeholder="Selecione o status" />
                         </SelectTrigger>
                       </FormControl>
