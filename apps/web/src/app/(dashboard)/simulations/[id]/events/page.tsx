@@ -213,11 +213,11 @@ export default function EventsPage() {
             <CardTitle className="text-foreground/80">Histórico de Movimentações</CardTitle>
             <CardDescription>Registro detalhado de toda a movimentação de entrada e saída</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="h-full">
             {isLoading ? (
               <Spinner />
             ) : events?.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">Nenhum evento registrado.</div>
+              <div className="flex justify-center h-full text-sm items-center text-muted-foreground">Nenhum evento registrado</div>
             ) : (
               <Table>
                 <TableHeader>

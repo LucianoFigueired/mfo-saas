@@ -62,8 +62,8 @@ export default function AnalysisPage() {
       {showThinking && !analysis ? (
         <AnalysisSkeleton />
       ) : !analysis ? (
-        <Card className="border-dashed">
-          <CardContent className="py-10 text-center text-muted-foreground">
+        <Card className="border-dashed mt-10">
+          <CardContent className="flex justify-center md:h-40 sm:h-10 text-sm items-center text-muted-foreground">
             Nenhuma análise gerada ainda. Faça uma simulação para iniciar.
           </CardContent>
         </Card>

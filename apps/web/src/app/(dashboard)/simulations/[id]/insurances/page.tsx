@@ -208,11 +208,11 @@ export default function InsurancesPage() {
             <CardTitle className="text-foreground/80">Apólices Ativas</CardTitle>
             <CardDescription>Registro de apólices em vigor e proteção ativa do patrimônio</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="h-full">
             {isLoading ? (
               <Spinner />
             ) : insurances?.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">Nenhuma proteção cadastrada.</div>
+              <div className="flex justify-center h-full text-sm items-center text-muted-foreground">Nenhum seguro cadastrado</div>
             ) : (
               <Table>
                 <TableHeader>

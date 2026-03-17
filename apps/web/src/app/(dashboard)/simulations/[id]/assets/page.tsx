@@ -241,11 +241,11 @@ export default function AssetsPage() {
             <CardTitle className="text-foreground/80">Carteira de Ativos</CardTitle>
             <CardDescription className="text-muted-foreground">Diversificação de ativos financeiros e imobilizados</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="h-full">
             {isLoading ? (
               <Spinner />
             ) : assets?.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">Nenhum ativo cadastrado.</div>
+              <div className="flex justify-center h-full text-sm items-center text-muted-foreground">Nenhum ativo cadastrado</div>
             ) : (
               <Table>
                 <TableHeader>
