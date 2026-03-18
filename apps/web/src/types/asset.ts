@@ -7,10 +7,13 @@ export interface Asset {
   value: number;
   date: Date;
 
+  productId?: string | null;
+  returnRate?: string | null; // decimal string (ex: "0.12")
+
   isFinanced: boolean;
   installments?: number;
-  interestRate?: Number;
-  downPayment?: Number;
+  interestRate?: number;
+  downPayment?: number;
 
   simulation: Simulation;
 }

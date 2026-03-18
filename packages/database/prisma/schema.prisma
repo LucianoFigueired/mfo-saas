@@ -22,6 +22,7 @@ model User {
 
   clients Client[]
   scenarioTemplates ScenarioTemplate[]
+  products Product[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -144,10 +145,16 @@ model Asset {
   value Decimal   @db.Decimal(15, 2)
   date  DateTime
 
+  // Rentabilidade específica do ativo (opcional). Se não informada, usa baseTax da simulação.
+  returnRate Decimal? @db.Decimal(10, 4)
+
   isFinanced   Boolean  @default(false)
   installments Int?
   interestRate Decimal? @db.Decimal(10, 4)
   downPayment  Decimal? @db.Decimal(15, 2)
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   simulationId String
   simulation   Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
@@ -156,6 +163,29 @@ model Asset {
 enum AssetType {
   FINANCEIRO
   IMOBILIZADO
+}
+
+model Product {
+  id          String  @id @default(uuid())
+  name        String
+  provider    String?
+  category    String?
+  description String?
+
+  // Rentabilidade anual esperada (formato decimal, ex: 0.12)
+  returnRate Decimal @db.Decimal(10, 4)
+
+  advisorId String
+  advisor   User @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+
+  assets Asset[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("products")
+  @@index([advisorId])
+  @@index([name])
 }
 
 model Event {

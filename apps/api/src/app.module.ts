@@ -16,6 +16,7 @@ import { NotificationsGateway } from './modules/notifications/notifications.gate
 import { ConfigModule } from '@nestjs/config';
 import { ClientsModule } from './modules/clients/clients.module';
 import { ScenarioTemplatesModule } from './modules/scenario-templates/scenario-templates.module';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ScenarioTemplatesModule } from './modules/scenario-templates/scenario-t
     AuthModule,
     ClientsModule,
     ScenarioTemplatesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AiService, NotificationsGateway],

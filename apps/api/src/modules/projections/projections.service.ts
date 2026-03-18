@@ -5,7 +5,29 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { PrismaService } from '../../prisma/prisma.service';
-import { ProjectionGeneratedEvent } from './events/projection-generated.event';
+
+type AssetRow = {
+  name: string;
+  type: 'FINANCEIRO' | 'IMOBILIZADO';
+  value: { toString(): string };
+  date: Date;
+  returnRate?: { toString(): string } | null;
+};
+
+type EventRow = {
+  name: string;
+  type: 'ENTRADA' | 'SAIDA';
+  value: { toString(): string };
+  frequency: 'ONCE' | 'MONTHLY' | 'YEARLY';
+  startDate: Date;
+  endDate: Date | null;
+};
+
+type InsuranceRow = {
+  insuredValue: { toString(): string };
+  startDate: Date;
+  duration: number;
+};
 
 @Injectable()
 export class ProjectionsService {
@@ -39,31 +61,30 @@ export class ProjectionsService {
     const status = statusOverride || simulation.status;
     const startYear = simulation.startDate.getFullYear();
     const endYear = 2060;
-    const results: any[] = [];
+    const results: Array<Record<string, unknown>> = [];
 
-    const inflationRate = (simulation as any).inflation
-      ? new Decimal((simulation as any).inflation)
+    const inflationRate = simulation.inflation
+      ? new Decimal(simulation.inflation.toString())
       : new Decimal(0.04);
     const financialRate = new Decimal(simulation.baseTax);
-    const realEstateRate = (simulation as any).realEstateRate
-      ? new Decimal((simulation as any).realEstateRate)
+    const realEstateRate = simulation.realEstateRate
+      ? new Decimal(simulation.realEstateRate.toString())
       : new Decimal(0.05);
-    const successionTaxRate = (simulation as any).successionTax
-      ? new Decimal((simulation as any).successionTax)
+    const successionTaxRate = simulation.successionTax
+      ? new Decimal(simulation.successionTax.toString())
       : new Decimal(0.15);
 
-    // 1. Separa o patrimônio inicial por Classe de Ativo
-    let { financial, realEstate } = this.calculateInitialWealthByClass(
-      simulation.assets,
+    // 1. Separa o patrimônio inicial por Classe e Rentabilidade (financeiro)
+    let { financialBuckets, realEstate } = this.calculateInitialWealthByClass(
+      simulation.assets as unknown as AssetRow[],
       simulation.startDate,
+      financialRate,
     );
 
     for (let year = startYear; year <= endYear; year++) {
-      const yearStart = startOfYear(new Date(year, 0, 1));
-
       // 2. Calcular Fluxo de Caixa (Entradas - Saídas)
       const yearlyCashFlow = this.calculateYearlyCashFlow(
-        simulation.events,
+        simulation.events as unknown as EventRow[],
         year,
         status,
       );
@@ -74,26 +95,40 @@ export class ProjectionsService {
       // 3. Regra de Sucessão: Morte dispara Seguro + Impostos (ITCMD)
       if (status === 'MORTO' && year === startYear) {
         insurancePayout = this.calculateActiveInsurancesPayout(
-          simulation.insurances,
+          simulation.insurances as unknown as InsuranceRow[],
           simulation.startDate,
         );
 
         // O prêmio do seguro entra como liquidez financeira
-        financial = financial.plus(insurancePayout);
+        financialBuckets = this.addToFinancialBuckets(
+          financialBuckets,
+          financialRate,
+          insurancePayout,
+        );
 
         // ITCMD incide sobre o patrimônio bruto (Imóveis + Financeiro)
-        const grossEstate = financial.plus(realEstate);
+        const financialTotal = this.sumFinancialBuckets(financialBuckets);
+        const grossEstate = financialTotal.plus(realEstate);
         successionCost = grossEstate.times(successionTaxRate);
 
         // A mordida da sucessão corrói a liquidez da família (dinheiro em conta)
-        financial = financial.minus(successionCost);
+        financialBuckets = this.addToFinancialBuckets(
+          financialBuckets,
+          financialRate,
+          successionCost.negated(),
+        );
       }
 
       // 4. O Fluxo de caixa anual aumenta ou consome o caixa financeiro
-      financial = financial.plus(yearlyCashFlow);
+      financialBuckets = this.addToFinancialBuckets(
+        financialBuckets,
+        financialRate,
+        yearlyCashFlow,
+      );
 
       // 5. Total do Patrimônio Nominal (Dinheiro de padeiro)
-      const nominalWealth = financial.plus(realEstate);
+      const financialTotal = this.sumFinancialBuckets(financialBuckets);
+      const nominalWealth = financialTotal.plus(realEstate);
 
       // 6. Total do Patrimônio Real (Descontando a Inflação IPCA)
       const yearsPassed = year - startYear;
@@ -107,7 +142,7 @@ export class ProjectionsService {
         year,
         wealth: nominalWealth.toFixed(2), // Nominal (Mantido para não quebrar o frontend atual)
         realWealth: realWealth.toFixed(2), // Real (Novo!)
-        financialWealth: financial.toFixed(2),
+        financialWealth: financialTotal.toFixed(2),
         realEstateWealth: realEstate.toFixed(2),
         cashFlow: yearlyCashFlow.toFixed(2),
         insuranceReceived: insurancePayout.isZero()
@@ -119,7 +154,10 @@ export class ProjectionsService {
       });
 
       // 8. Aplica Juros Compostos para o ANO SEGUINTE (Cada classe com sua taxa)
-      financial = financial.times(new Decimal(1).plus(financialRate));
+      financialBuckets = financialBuckets.map((b) => ({
+        rate: b.rate,
+        value: b.value.times(new Decimal(1).plus(b.rate)),
+      }));
       realEstate = realEstate.times(new Decimal(1).plus(realEstateRate));
     }
 
@@ -172,35 +210,50 @@ export class ProjectionsService {
           isLegacy: false,
 
           // Clonando as novas taxas
-          inflation: (original as any).inflation,
-          realEstateRate: (original as any).realEstateRate,
-          successionTax: (original as any).successionTax,
+          inflation: original.inflation,
+          realEstateRate: original.realEstateRate,
+          successionTax: original.successionTax,
         },
       });
 
       if (!isSituationActual) {
         if (original.assets.length > 0) {
           await tx.asset.createMany({
-            data: original.assets.map(({ id, simulationId, ...rest }) => ({
-              ...rest,
-              simulationId: newVersion.id,
-            })),
+            data: original.assets.map((asset) => {
+              const { id, simulationId, ...rest } = asset;
+              void id;
+              void simulationId;
+              return {
+                ...rest,
+                simulationId: newVersion.id,
+              };
+            }),
           });
         }
         if (original.events.length > 0) {
           await tx.event.createMany({
-            data: original.events.map(({ id, simulationId, ...rest }) => ({
-              ...rest,
-              simulationId: newVersion.id,
-            })),
+            data: original.events.map((event) => {
+              const { id, simulationId, ...rest } = event;
+              void id;
+              void simulationId;
+              return {
+                ...rest,
+                simulationId: newVersion.id,
+              };
+            }),
           });
         }
         if (original.insurances.length > 0) {
           await tx.insurance.createMany({
-            data: original.insurances.map(({ id, simulationId, ...rest }) => ({
-              ...rest,
-              simulationId: newVersion.id,
-            })),
+            data: original.insurances.map((ins) => {
+              const { id, simulationId, ...rest } = ins;
+              void id;
+              void simulationId;
+              return {
+                ...rest,
+                simulationId: newVersion.id,
+              };
+            }),
           });
         }
 
@@ -220,7 +273,7 @@ export class ProjectionsService {
   }
 
   private calculateYearlyCashFlow(
-    events: any[],
+    events: EventRow[],
     year: number,
     status: string,
   ): Decimal {
@@ -240,7 +293,7 @@ export class ProjectionsService {
 
       if (status === 'MORTO' && event.type === 'ENTRADA') return;
 
-      let eventValue = new Decimal(event.value);
+      let eventValue = new Decimal(event.value.toString());
       if (status === 'MORTO' && event.type === 'SAIDA') {
         eventValue = eventValue.div(2);
       }
@@ -259,7 +312,7 @@ export class ProjectionsService {
   }
 
   private calculateActiveInsurancesPayout(
-    insurances: any[],
+    insurances: InsuranceRow[],
     referenceDate: Date,
   ): Decimal {
     return insurances.reduce((acc, ins) => {
@@ -271,15 +324,21 @@ export class ProjectionsService {
         isBefore(startDate, referenceDate) &&
         isAfter(expirationDate, referenceDate);
 
-      return isActive ? acc.plus(new Decimal(ins.insuredValue)) : acc;
+      return isActive
+        ? acc.plus(new Decimal(ins.insuredValue.toString()))
+        : acc;
     }, new Decimal(0));
   }
 
   private calculateInitialWealthByClass(
-    assets: any[],
+    assets: AssetRow[],
     startDate: Date,
-  ): { financial: Decimal; realEstate: Decimal } {
-    const latestAssets = new Map<string, any>();
+    defaultFinancialRate: Decimal,
+  ): {
+    financialBuckets: { rate: Decimal; value: Decimal }[];
+    realEstate: Decimal;
+  } {
+    const latestAssets = new Map<string, AssetRow>();
 
     assets.forEach((asset) => {
       if (
@@ -293,17 +352,49 @@ export class ProjectionsService {
       }
     });
 
-    let financial = new Decimal(0);
+    const bucketMap = new Map<string, { rate: Decimal; value: Decimal }>();
     let realEstate = new Decimal(0);
 
     Array.from(latestAssets.values()).forEach((asset) => {
       if (asset.type === 'IMOBILIZADO') {
-        realEstate = realEstate.plus(new Decimal(asset.value));
+        realEstate = realEstate.plus(new Decimal(asset.value.toString()));
       } else {
-        financial = financial.plus(new Decimal(asset.value));
+        const rate = asset.returnRate
+          ? new Decimal(asset.returnRate.toString())
+          : defaultFinancialRate;
+        const key = rate.toString();
+        const existing = bucketMap.get(key);
+        const value = new Decimal(asset.value.toString());
+        bucketMap.set(key, {
+          rate,
+          value: existing ? existing.value.plus(value) : value,
+        });
       }
     });
 
-    return { financial, realEstate };
+    return { financialBuckets: Array.from(bucketMap.values()), realEstate };
+  }
+
+  private sumFinancialBuckets(
+    buckets: { rate: Decimal; value: Decimal }[],
+  ): Decimal {
+    return buckets.reduce((acc, b) => acc.plus(b.value), new Decimal(0));
+  }
+
+  private addToFinancialBuckets(
+    buckets: { rate: Decimal; value: Decimal }[],
+    defaultRate: Decimal,
+    delta: Decimal,
+  ) {
+    const key = defaultRate.toString();
+    const bucketMap = new Map(
+      buckets.map((b) => [b.rate.toString(), { rate: b.rate, value: b.value }]),
+    );
+    const existing = bucketMap.get(key);
+    bucketMap.set(key, {
+      rate: defaultRate,
+      value: existing ? existing.value.plus(delta) : delta,
+    });
+    return Array.from(bucketMap.values());
   }
 }

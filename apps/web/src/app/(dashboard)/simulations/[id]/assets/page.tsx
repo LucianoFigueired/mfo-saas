@@ -14,9 +14,11 @@ import { format } from "date-fns";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2, PlusCircle, Building2, TrendingUp } from "lucide-react";
 import { CreateAssetDto, CreateAssetSchema } from "@mfo-common";
-import { useForm } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 
 import { useAssets } from "@/hooks/useAssets";
+import { useProducts } from "@/hooks/useProducts";
+import { Product } from "@/types/product";
 
 import { AssetType } from "@/types/asset";
 
@@ -24,14 +26,17 @@ export default function AssetsPage() {
   const params = useParams();
   const simulationId = params.id as string;
   const { assets, isLoading, createAsset, deleteAsset } = useAssets(simulationId);
+  const { products } = useProducts();
 
   const form = useForm<CreateAssetDto>({
-    resolver: zodResolver(CreateAssetSchema),
+    resolver: zodResolver(CreateAssetSchema) as unknown as Resolver<CreateAssetDto>,
     defaultValues: {
       name: "",
       date: new Date().toISOString().split("T")[0] as unknown as Date,
       type: "FINANCEIRO",
       value: 0,
+      productId: undefined,
+      returnRate: undefined,
       isFinanced: false,
       installments: 0,
       interestRate: 0,
@@ -52,6 +57,7 @@ export default function AssetsPage() {
     const payload = {
       ...data,
       date: new Date(data.date),
+      returnRate: data.returnRate !== undefined ? Number(data.returnRate) / 100 : undefined,
     };
 
     createAsset.mutate(payload, {
@@ -61,6 +67,8 @@ export default function AssetsPage() {
           date: new Date().toISOString().split("T")[0] as unknown as Date,
           type: "FINANCEIRO",
           value: 0,
+          productId: undefined,
+          returnRate: undefined,
           isFinanced: false,
           installments: 0,
           interestRate: 0,
@@ -107,6 +115,34 @@ export default function AssetsPage() {
                   )}
                 />
 
+                {assetType === "FINANCEIRO" && (
+                  <FormItem>
+                    <FormLabel className="text-purple-700">Buscar na Biblioteca (opcional)</FormLabel>
+                    <Select
+                      onValueChange={(productId) => {
+                        const p = (products || []).find((x: Product) => x.id === productId);
+                        if (!p) return;
+                        form.setValue("productId", p.id);
+                        form.setValue("name", p.name);
+                        form.setValue("returnRate", Number(p.returnRate) * 100);
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="min-h-11 text-foreground/80 rounded-xl">
+                          <SelectValue placeholder="Selecione um produto para puxar a rentabilidade" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(products || []).map((p: Product) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+
                 <FormField
                   control={form.control}
                   name="name"
@@ -120,6 +156,22 @@ export default function AssetsPage() {
                     </FormItem>
                   )}
                 />
+
+                {assetType === "FINANCEIRO" && (
+                  <FormField
+                    control={form.control}
+                    name="returnRate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-purple-700">Rentabilidade (% a.a.)</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
