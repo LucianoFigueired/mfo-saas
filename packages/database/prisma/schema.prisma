@@ -13,6 +13,31 @@ enum UserRole {
   USER
 }
 
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskSource {
+  MANUAL
+  AUTO
+}
+
+enum TaskKind {
+  GENERAL
+  INSURANCE_EXPIRY
+  BIRTHDAY
+  AI_RISK
+  SIMULATION_FOLLOWUP
+}
+
 model User {
   id       String   @id @default(uuid())
   email    String   @unique
@@ -23,6 +48,7 @@ model User {
   clients Client[]
   scenarioTemplates ScenarioTemplate[]
   products Product[]
+  tasks Task[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -42,6 +68,7 @@ model Client {
 
   simulations Simulation[]
   dependents  Dependent[]
+  tasks Task[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -186,6 +213,37 @@ model Product {
   @@map("products")
   @@index([advisorId])
   @@index([name])
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+
+  status   TaskStatus   @default(TODO)
+  priority TaskPriority @default(MEDIUM)
+  source   TaskSource   @default(MANUAL)
+  kind     TaskKind     @default(GENERAL)
+
+  dueDate DateTime
+
+  // Chave para gerar lembretes automáticos de forma idempotente
+  uniqueKey String?
+  metadata  Json?
+
+  advisorId String
+  advisor   User @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks")
+  @@index([advisorId, dueDate])
+  @@index([advisorId, status])
+  @@unique([advisorId, uniqueKey])
 }
 
 model Event {

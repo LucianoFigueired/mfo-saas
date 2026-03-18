@@ -17,6 +17,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ClientsModule } from './modules/clients/clients.module';
 import { ScenarioTemplatesModule } from './modules/scenario-templates/scenario-templates.module';
 import { ProductsModule } from './modules/products/products.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ProductsModule } from './modules/products/products.module';
     ClientsModule,
     ScenarioTemplatesModule,
     ProductsModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService, AiService, NotificationsGateway],
