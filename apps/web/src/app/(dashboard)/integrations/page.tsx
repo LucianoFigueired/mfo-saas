@@ -1,6 +1,6 @@
 import { CodeXml } from "lucide-react";
 
-export default function DashboardPage() {
+export default function IntegrationsPage() {
   return (
     <main className="bg-background flex min-h-full flex-col items-center justify-center text-center">
       <div className="flex max-w-md flex-col items-center space-y-6">
