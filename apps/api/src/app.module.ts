@@ -18,6 +18,7 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { ScenarioTemplatesModule } from './modules/scenario-templates/scenario-templates.module';
 import { ProductsModule } from './modules/products/products.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
     ScenarioTemplatesModule,
     ProductsModule,
     TasksModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, AiService, NotificationsGateway],
