@@ -9,7 +9,20 @@ import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { ArrowUpRight, TrendingUp, Users, ChartArea, Activity, AlertCircle, Building2 } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, Legend } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  PieChart,
+  Pie,
+  Legend,
+  LabelList,
+  Sector,
+} from "recharts";
 
 import { useDashboardOverview } from "@/hooks/useDashboard";
 
@@ -36,10 +49,36 @@ const PIE_COLORS = {
 export default function DashboardPage() {
   const { data, isLoading, isError } = useDashboardOverview();
 
-  const allocationTotal = useMemo(() => {
+  const formattedAllocation = useMemo(() => {
     const a = data?.charts.allocation || [];
-    return a.reduce((acc, p) => acc + p.value, 0);
+    return a.map((entry) => {
+      const formattedName = entry.name.charAt(0).toUpperCase() + entry.name.slice(1).toLowerCase();
+
+      return {
+        ...entry,
+        formattedName,
+        fill: PIE_COLORS[entry.name as keyof typeof PIE_COLORS] || "var(--primary)",
+      };
+    });
   }, [data?.charts.allocation]);
+
+  const allocationTotal = useMemo(() => {
+    return formattedAllocation.reduce((acc, p) => acc + p.value, 0);
+  }, [formattedAllocation]);
+
+  const CustomPieChart = (props: any) => {
+    const { payload, ...rest } = props;
+    return <Sector {...rest} fill={payload.fill} />;
+  };
+
+  const CustomLabel = (props: any) => {
+    const { x, y, formattedName, fill } = props;
+    return (
+      <text x={x} y={y} fill={fill} textAnchor="middle" dominantBaseline="central" className="text-[11px] font-bold">
+        {formattedName}
+      </text>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -96,15 +135,17 @@ export default function DashboardPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground/80">Visão Geral</h1>
-          <p className="text-sm text-muted-foreground">Seu centro de comando: métricas, alertas e atividade recente.</p>
+          <p className="text-sm text-muted-foreground mt-1">Seu centro de comando: métricas, alertas e atividade recente</p>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link href="/calendar">Ver tarefas</Link>
+          <Button asChild variant="outline">
+            <Link href="/calendar" className="text-muted-foreground">
+              Ver tarefas
+            </Link>
           </Button>
-          <Button asChild className="rounded-xl">
+          <Button asChild>
             <Link href="/clients">
-              Ver clientes <ArrowUpRight className="ml-2 h-4 w-4" />
+              <span className="text-white font-semibold px-2">Ver clientes</span> <ArrowUpRight className="ml-2 h-4 w-4 text-white" />
             </Link>
           </Button>
         </div>
@@ -113,7 +154,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">AUM (Patrimônio sob gestão)</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Patrimônio sob gestão (AUM)</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -176,14 +217,36 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/50" />
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={10} className="text-xs text-muted-foreground" />
-                  <YAxis tickFormatter={formatCompactCurrency} tickLine={false} axisLine={false} tickMargin={10} className="text-xs text-muted-foreground" />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: "12px" }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    className="text-xs text-muted-foreground"
+                  />
+                  <YAxis
+                    tickFormatter={formatCompactCurrency}
+                    tick={{ fontSize: "12px" }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    className="text-xs text-muted-foreground"
+                  />
                   <Tooltip
                     cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
                     formatter={(v?: number | string) => formatCurrency(Number(v ?? 0))}
                     labelFormatter={(l) => `Mês ${l}`}
                   />
-                  <Area type="monotone" dataKey="aum" name="AUM" stroke="var(--chart-2)" fill="url(#colorAum)" strokeWidth={2} dot={false} />
+                  <Area
+                    type="monotone"
+                    dataKey="aum"
+                    name="AUM"
+                    stroke="var(--chart-2)"
+                    fill="url(#colorAum)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -199,19 +262,43 @@ export default function DashboardPage() {
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={data.charts.allocation} dataKey="value" nameKey="name" innerRadius={60} outerRadius={95} paddingAngle={4}>
-                    {data.charts.allocation.map((entry) => (
-                      <Cell key={entry.name} fill={PIE_COLORS[entry.name]} />
-                    ))}
+                  <Pie
+                    data={formattedAllocation}
+                    shape={CustomPieChart}
+                    dataKey="value"
+                    nameKey="formattedName"
+                    innerRadius={60}
+                    outerRadius={95}
+                    paddingAngle={4}
+                  >
+                    <LabelList dataKey="formattedName" content={CustomLabel} />
                   </Pie>
+
                   <Tooltip
-                    formatter={(v?: number | string, n?: string) => {
-                      const val = Number(v ?? 0);
-                      const pct = allocationTotal > 0 ? (val / allocationTotal) * 100 : 0;
-                      return [`${formatCurrency(val)} (${pct.toFixed(0)}%)`, String(n ?? "")];
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        const val = Number(data.value ?? 0);
+                        const pct = allocationTotal > 0 ? (val / allocationTotal) * 100 : 0;
+
+                        return (
+                          <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-4 shadow-xl">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: data.fill }} />
+                              <span className="text-sm font-bold text-foreground/80">{data.formattedName}</span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-sm font-bold">{formatCurrency(val)}</span>
+                              <span className="text-xs text-muted-foreground">{pct.toFixed(1)}% do patrimônio</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
                   />
-                  <Legend />
+
+                  <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: "14px", paddingTop: "10px" }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -223,7 +310,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Centro de Alertas</CardTitle>
-            <CardDescription>Atenção imediata (próximos 7 dias)</CardDescription>
+            <CardDescription className="text-xs">Atenção imediata (próximos 7 dias)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.alerts.critical.length === 0 ? (
@@ -246,7 +333,9 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${t.priority === "HIGH" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700"}`}>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${t.priority === "HIGH" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-700"}`}
+                  >
                     {t.priority === "HIGH" ? "Alta" : "Média/Baixa"}
                   </span>
                 </div>
@@ -258,7 +347,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Tarefas de Hoje</CardTitle>
-            <CardDescription>Para você não perder o foco</CardDescription>
+            <CardDescription className="text-xs">Para você não perder o foco</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.alerts.today.length === 0 ? (
@@ -278,7 +367,9 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700">{t.status === "IN_PROGRESS" ? "Em andamento" : "A fazer"}</span>
+                  <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+                    {t.status === "IN_PROGRESS" ? "Em andamento" : "A fazer"}
+                  </span>
                 </div>
               ))
             )}
@@ -289,9 +380,9 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Atividade Recente</CardTitle>
-          <CardDescription>Acesso rápido ao que você mexeu por último</CardDescription>
+          <CardDescription className="text-xs">Acesso rápido ao que você mexeu por último</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-8">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <div className="text-sm font-semibold text-foreground/80">Últimos clientes adicionados</div>
@@ -309,7 +400,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 mt-4">
               <div className="text-sm font-semibold text-foreground/80">Últimas simulações editadas</div>
               <Separator />
               <div className="space-y-2">
@@ -325,7 +416,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <Button asChild variant="outline" size="sm" className="rounded-xl">
-                      <Link href={`/simulations/${s.id}/projection`}>Retomar</Link>
+                      <Link href={`/simulations/${s.id}/projection`} className="text-muted-foreground">
+                        Retomar
+                      </Link>
                     </Button>
                   </div>
                 ))}
