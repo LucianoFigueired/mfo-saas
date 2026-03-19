@@ -12,10 +12,11 @@ import { Separator } from "@components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateProductDto, CreateProductSchema } from "@mfo-common";
 import { type Resolver, useForm } from "react-hook-form";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Info } from "lucide-react";
 
 import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types/product";
+import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
 
 function toPercent(decimalLike: string | number | null | undefined): number {
   const n = Number(decimalLike);
@@ -88,18 +89,25 @@ export default function ProductLibraryPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground/80">Biblioteca de Ativos / Produtos</h1>
-          <p className="text-sm text-muted-foreground">Cadastre produtos recomendados para reutilizar a rentabilidade ao montar carteiras.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Cadastre produtos recomendados para reutilizar a rentabilidade ao montar carteiras
+          </p>
         </div>
-        <Button onClick={openCreate} className="rounded-xl">
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Produto
+        <Button onClick={openCreate}>
+          <Plus className="mr-2 h-4 w-4" strokeWidth={3} />
+          <span className="font-semibold">Novo Produto</span>
         </Button>
       </div>
 
       <div className="flex gap-2 items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar por nome, gestora, categoria..." value={q} onChange={(e) => setQ(e.target.value)} />
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            className="pl-9 bg-white"
+            placeholder="Buscar por nome, gestora, categoria..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
       </div>
 
@@ -107,36 +115,39 @@ export default function ProductLibraryPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sorted.map((p) => (
-          <Card key={p.id} className="rounded-2xl">
-            <CardHeader className="pb-3">
+          <Card key={p.id} className="rounded-2xl gap-4">
+            <CardHeader>
               <CardTitle className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="text-base">{p.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {[p.provider, p.category].filter(Boolean).join(" • ")}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{[p.provider, p.category].filter(Boolean).join(" • ")}</div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="icon" className="rounded-xl" onClick={() => openEdit(p)}>
+                  <Button variant="outline" size="xs" className="rounded-xl" onClick={() => openEdit(p)}>
                     <Pencil className="h-4 w-4" />
+                    <span>Editar</span>
                   </Button>
                   <Button
                     variant="outline"
-                    size="icon"
-                    className="rounded-xl text-red-600 hover:text-red-700"
+                    size="xs"
+                    className="rounded-xl text-red-600 hover:text-red-700 hover:bg-red-600/10 hover:border-red-600/10"
                     onClick={() => deleteProduct.mutate(p.id)}
                   >
                     <Trash2 className="h-4 w-4" />
+                    <span>Excluir</span>
                   </Button>
                 </div>
               </CardTitle>
-              {p.description && <CardDescription>{p.description}</CardDescription>}
+              {p.description && (
+                <CardDescription className="flex items-center mt-1">
+                  <Info className="h-4 w-4" />
+                  <span className="ml-2">{p.description}</span>
+                </CardDescription>
+              )}
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              <div className="flex justify-between">
-                <span>Rentabilidade esperada</span>
-                <span className="text-foreground/80 font-medium">{toPercent(p.returnRate).toFixed(2)}% a.a.</span>
-              </div>
+            <CardContent className="text-sm flex justify-between items-end flex-1 text-muted-foreground">
+              <span>Rentabilidade esperada</span>
+              <span className="text-foreground/80 font-bold">{toPercent(p.returnRate).toFixed(2)}% a.a.</span>
             </CardContent>
           </Card>
         ))}
@@ -145,7 +156,9 @@ export default function ProductLibraryPage() {
           <Card className="rounded-2xl md:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">Nenhum produto cadastrado</CardTitle>
-              <CardDescription>Crie produtos para acelerar o cadastro de ativos nas simulações (puxando a rentabilidade automaticamente).</CardDescription>
+              <CardDescription>
+                Crie produtos para acelerar o cadastro de ativos nas simulações (puxando a rentabilidade automaticamente).
+              </CardDescription>
             </CardHeader>
           </Card>
         )}
@@ -155,24 +168,39 @@ export default function ProductLibraryPage() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader className="mb-2">
             <DialogTitle>{editing ? "Editar produto" : "Novo produto"}</DialogTitle>
-            <DialogDescription>Defina a rentabilidade anual esperada para preencher automaticamente novos ativos.</DialogDescription>
+            <DialogDescription>Defina a rentabilidade anual esperada para preencher automaticamente novos ativos</DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do produto</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Fundo XPTO" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="col-span-4">
+                      <FormLabel>Nome do produto</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Fundo XPTO" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="returnRate"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Rentabilidade (% a.a.)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -180,7 +208,9 @@ export default function ProductLibraryPage() {
                   name="provider"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Gestora/Corretora (opcional)</FormLabel>
+                      <FormLabel>
+                        Gestora/Corretora <Badge variant="secondary">Opcional</Badge>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Ex: XP, BTG, Itaú..." {...field} />
                       </FormControl>
@@ -193,7 +223,9 @@ export default function ProductLibraryPage() {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categoria (opcional)</FormLabel>
+                      <FormLabel>
+                        Categoria <Badge variant="secondary">Opcional</Badge>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Ex: Multimercado, Renda Fixa..." {...field} />
                       </FormControl>
@@ -205,24 +237,12 @@ export default function ProductLibraryPage() {
 
               <FormField
                 control={form.control}
-                name="returnRate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rentabilidade (% a.a.)</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição (opcional)</FormLabel>
+                    <FormLabel>
+                      Descrição <Badge variant="secondary">Opcional</Badge>
+                    </FormLabel>
                     <FormControl>
                       <Textarea placeholder="Ex: Fundo recomendado para caixa e liquidez diária" {...field} />
                     </FormControl>
@@ -246,4 +266,3 @@ export default function ProductLibraryPage() {
     </div>
   );
 }
-

@@ -27,6 +27,7 @@ import { useClients } from "@/hooks/useClients";
 import { Client } from "@/types/client";
 import { useScenarioTemplates } from "@/hooks/useScenarioTemplates";
 import { ScenarioTemplate } from "@/types/scenarioTemplate";
+import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
 
 export default function NewSimulationPage() {
   const router = useRouter();
@@ -100,7 +101,9 @@ export default function NewSimulationPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-baseline">
                 <FormItem className="col-span-1 md:col-span-2">
-                  <FormLabel>Template de Cenário (opcional)</FormLabel>
+                  <FormLabel>
+                    Template de Cenário <Badge variant="secondary">Opcional</Badge>
+                  </FormLabel>
                   <Select
                     onValueChange={(templateId) => {
                       const tpl = (templates || []).find((t: ScenarioTemplate) => t.id === templateId);
@@ -136,7 +139,7 @@ export default function NewSimulationPage() {
                       <FormControl>
                         <Input placeholder="Ex: Cenário Conservador" {...field} />
                       </FormControl>
-                      <FormDescription>Use um nome que facilite a busca posteriormente.</FormDescription>
+                      <FormDescription className="text-xs">Use um nome que facilite a busca posteriormente.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -188,7 +191,7 @@ export default function NewSimulationPage() {
                           <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
                         </div>
                       </FormControl>
-                      <FormDescription>Rentabilidade média acima da inflação.</FormDescription>
+                      <FormDescription className="text-xs">Rentabilidade média acima da inflação.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -245,7 +248,7 @@ export default function NewSimulationPage() {
                           <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
                         </div>
                       </FormControl>
-                      <FormDescription>Inflação média projetada.</FormDescription>
+                      <FormDescription className="text-xs">Inflação média projetada.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -271,7 +274,7 @@ export default function NewSimulationPage() {
                           <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
                         </div>
                       </FormControl>
-                      <FormDescription>Taxa de valorização do patrimônio imobiliário.</FormDescription>
+                      <FormDescription className="text-xs">Taxa de valorização do patrimônio imobiliário.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -295,7 +298,7 @@ export default function NewSimulationPage() {
                           <span className="absolute right-3 top-3 text-sm text-muted-foreground">%</span>
                         </div>
                       </FormControl>
-                      <FormDescription>Alíquota aplicada na sucessão (morte).</FormDescription>
+                      <FormDescription className="text-xs">Alíquota aplicada na sucessão (morte).</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -320,7 +323,7 @@ export default function NewSimulationPage() {
                         <SelectItem value="INVALIDO">Inválido (Simular Invalidez)</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormDescription>
+                    <FormDescription className="text-xs">
                       Isso ativa as regras de gatilho para seguros e redução de despesas no motor de cálculo.
                     </FormDescription>
                     <FormMessage />

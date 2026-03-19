@@ -12,10 +12,11 @@ import { Separator } from "@components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateScenarioTemplateDto, CreateScenarioTemplateSchema } from "@mfo-common";
 import { type Resolver, useForm } from "react-hook-form";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Info } from "lucide-react";
 
 import { useScenarioTemplates } from "@/hooks/useScenarioTemplates";
 import { ScenarioTemplate } from "@/types/scenarioTemplate";
+import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
 
 function toPercentString(decimalLike: string | number | null | undefined): number {
   const n = Number(decimalLike);
@@ -132,7 +133,11 @@ export default function ScenarioTemplatesPage() {
                   </Button>
                 </div>
               </CardTitle>
-              {tpl.description && <CardDescription className="mt-2 pb-4 border-b-2">{tpl.description}</CardDescription>}
+              {tpl.description && (
+                <CardDescription className="flex items-center mt-2 pb-4 border-b-2">
+                  <Info className="h-4 w-4 mr-2" /> {tpl.description}
+                </CardDescription>
+              )}
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-1">
               <div className="flex justify-between">
@@ -200,7 +205,9 @@ export default function ScenarioTemplatesPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição (opcional)</FormLabel>
+                    <FormLabel>
+                      Descrição <Badge variant="secondary">Opcional</Badge>
+                    </FormLabel>
                     <FormControl>
                       <Textarea placeholder="Ex: Premissas para ciclo de queda de juros e inflação ancorada" {...field} />
                     </FormControl>

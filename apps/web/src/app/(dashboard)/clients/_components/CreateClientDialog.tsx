@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@components/ui/input";
 import { useClients } from "@/hooks/useClients";
 import { useState } from "react";
+import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
 
 export function CreateClientDialog() {
   const [open, setOpen] = useState(false);
@@ -69,7 +70,9 @@ export function CreateClientDialog() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-mail (Opcional)</FormLabel>
+                  <FormLabel>
+                    E-mail <Badge variant="secondary">Opcional</Badge>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="contato@familia.com" {...field} value={field.value || ""} />
                   </FormControl>
@@ -83,7 +86,9 @@ export function CreateClientDialog() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefone (Opcional)</FormLabel>
+                  <FormLabel>
+                    Telefone <Badge variant="secondary">Opcional</Badge>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="(11) 99999-9999" {...field} />
                   </FormControl>

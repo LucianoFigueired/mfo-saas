@@ -21,6 +21,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types/product";
 
 import { AssetType } from "@/types/asset";
+import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
 
 export default function AssetsPage() {
   const params = useParams();
@@ -101,7 +102,7 @@ export default function AssetsPage() {
                       <FormLabel className="text-purple-700">Tipo de Alocação</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="min-h-11 text-foreground/80 rounded-xl">
+                          <SelectTrigger className="min-h-11 w-full text-foreground/80 rounded-xl">
                             <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
@@ -117,7 +118,9 @@ export default function AssetsPage() {
 
                 {assetType === "FINANCEIRO" && (
                   <FormItem>
-                    <FormLabel className="text-purple-700">Buscar na Biblioteca (opcional)</FormLabel>
+                    <FormLabel className="text-purple-700">
+                      Buscar na Biblioteca <Badge className="bg-purple-500">Opcional</Badge>
+                    </FormLabel>
                     <Select
                       onValueChange={(productId) => {
                         const p = (products || []).find((x: Product) => x.id === productId);
@@ -128,8 +131,8 @@ export default function AssetsPage() {
                       }}
                     >
                       <FormControl>
-                        <SelectTrigger className="min-h-11 text-foreground/80 rounded-xl">
-                          <SelectValue placeholder="Selecione um produto para puxar a rentabilidade" />
+                        <SelectTrigger className="min-h-11 text-foreground/80 w-full rounded-xl">
+                          <SelectValue placeholder="Selecione um produto" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -279,7 +282,8 @@ export default function AssetsPage() {
                     "Salvando..."
                   ) : (
                     <>
-                      <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Ativo
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      <span className="font-semibold">Adicionar Ativo</span>
                     </>
                   )}
                 </Button>

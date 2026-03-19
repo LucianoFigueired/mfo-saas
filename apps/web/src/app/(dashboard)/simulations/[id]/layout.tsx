@@ -81,15 +81,20 @@ export default function SimulationLayout({ children }: { children: React.ReactNo
                 </Badge>
               </h1>
               <p className="text-muted-foreground text-sm mt-1">
-                <span className="mr-1.5">Versão {simulation.version}</span>
-                <span className="text-xs">•</span>
-                <span className="ml-1.5">Criada em {new Date(simulation.createdAt).toLocaleDateString()}</span>
+                <span>Versão {simulation.version}</span>
+                <span className="mx-1.5 text-xs">•</span>
+                <span>Criada em {new Date(simulation.createdAt).toLocaleDateString()}</span>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button className="text-white bg-emerald-500 border-emerald-500" variant="outline" size="sm" onClick={() => handlePrint()}>
+            <Button
+              className="text-white hover:text-white bg-emerald-500/90 border-emerald-500 hover:bg-emerald-500"
+              variant="outline"
+              size="sm"
+              onClick={() => handlePrint()}
+            >
               <Forward className="mr-2 h-4 w-4 text-white" />
               Exportar
             </Button>
