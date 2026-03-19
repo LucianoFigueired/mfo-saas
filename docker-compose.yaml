@@ -1,44 +1,18 @@
 services:
-  postgres:
-    image: postgres:15
-    container_name: mfo-db
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mfo_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d mfo_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:alpine
-    container_name: mfo-redis
-    ports:
-      - "6379:6379"
-
   api:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: mfo-api
+    container_name: zelo-api
     ports:
       - "3001:3001"
       - "9229:9229"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
     environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/mfo_db?schema=public
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - NODE_ENV=development
@@ -50,13 +24,11 @@ services:
       - /app/packages/common/node_modules
     command: >
       sh -c "
-        echo '⏳ Aguardando Banco de Dados...' &&
-        
         echo '🚀 Gerando Prisma Client...' &&
         pnpm --filter @mfo/database exec prisma generate &&
         
-        echo '🔄 Sincronizando Tabelas (DB Push)...' &&
-        pnpm --filter @mfo/database exec prisma db push --accept-data-loss &&
+        echo '🔄 Aplicando Migrações (Neon DB)...' &&
+        pnpm --filter @mfo/database exec prisma migrate deploy &&
         
         echo '🔧 Criando entrypoint index.js...' &&
         echo \"module.exports = require('@prisma/client');\" > packages/database/index.js &&
@@ -68,7 +40,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: mfo-web
+    container_name: zelo-web
     ports:
       - "3000:3000"
     depends_on:
@@ -82,6 +54,3 @@ services:
       - /app/apps/web/node_modules
       - /app/apps/web/.next
     command: pnpm --filter web run dev
-
-volumes:
-  postgres_data:

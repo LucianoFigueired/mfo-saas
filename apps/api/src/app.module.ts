@@ -13,7 +13,7 @@ import { InsurancesModule } from './modules/insurances/insurances.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { NotificationsGateway } from './modules/notifications/notifications.gateway';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule } from './modules/clients/clients.module';
 import { ScenarioTemplatesModule } from './modules/scenario-templates/scenario-templates.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -26,11 +26,19 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     ConfigModule.forRoot({ isGlobal: true }),
     ProjectionsModule,
     EventEmitterModule.forRoot(),
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT ?? '') || 6379,
-      },
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+          password: configService.get<string>('REDIS_PASSWORD'),
+          tls: {
+            rejectUnauthorized: false,
+          },
+          maxRetriesPerRequest: null,
+        },
+      }),
     }),
     SimulationsModule,
     AssetsModule,
