@@ -19,6 +19,7 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
+    "verbatimModuleSyntax": true,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   }
