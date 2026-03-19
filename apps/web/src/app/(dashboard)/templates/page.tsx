@@ -100,7 +100,7 @@ export default function ScenarioTemplatesPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground/80">Templates de Cenários</h1>
-          <p className="text-sm text-muted-foreground">Salve premissas macroeconômicas padrão para reutilizar em novas simulações.</p>
+          <p className="text-sm text-muted-foreground mt-1">Salve premissas macroeconômicas padrão para reutilizar em novas simulações</p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" strokeWidth={3} />
@@ -112,51 +112,61 @@ export default function ScenarioTemplatesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedTemplates.map((tpl) => (
-          <Card key={tpl.id} className="rounded-2xl">
+          <Card key={tpl.id} className="rounded-2xl gap-4">
             <CardHeader>
               <CardTitle className="flex items-start justify-between gap-4">
                 <span className="text-base">{tpl.name}</span>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="icon" className="rounded-xl" onClick={() => openEdit(tpl)}>
+                  <Button variant="outline" size="xs" className="rounded-xl" onClick={() => openEdit(tpl)}>
                     <Pencil className="h-4 w-4" />
+                    Editar
                   </Button>
                   <Button
                     variant="outline"
-                    size="icon"
+                    size="xs"
                     className="rounded-xl text-red-600 hover:text-red-700"
                     onClick={() => deleteTemplate.mutate(tpl.id)}
                   >
                     <Trash2 className="h-4 w-4" />
+                    Excluir
                   </Button>
                 </div>
               </CardTitle>
-              {tpl.description && <CardDescription>{tpl.description}</CardDescription>}
+              {tpl.description && <CardDescription className="mt-2 pb-4 border-b-2">{tpl.description}</CardDescription>}
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-1">
               <div className="flex justify-between">
                 <span>Taxa real</span>
-                <span className="text-foreground/80">{toPercentString(tpl.baseTax).toFixed(2)}%</span>
+                <span className="text-foreground/80">
+                  {toPercentString(tpl.baseTax).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>IPCA</span>
-                <span className="text-foreground/80">{toPercentString(tpl.inflation).toFixed(2)}%</span>
+                <span className="text-foreground/80">
+                  {toPercentString(tpl.inflation).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Valorização imóveis</span>
-                <span className="text-foreground/80">{toPercentString(tpl.realEstateRate).toFixed(2)}%</span>
+                <span className="text-foreground/80">
+                  {toPercentString(tpl.realEstateRate).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>ITCMD + custos</span>
-                <span className="text-foreground/80">{toPercentString(tpl.successionTax).toFixed(2)}%</span>
+                <span className="text-foreground/80">
+                  {toPercentString(tpl.successionTax).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span>
               </div>
             </CardContent>
           </Card>
         ))}
         {sortedTemplates.length === 0 && (
-          <Card className="rounded-2xl md:col-span-2">
+          <Card className="rounded-2xl py-10 md:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">Nenhum template ainda</CardTitle>
-              <CardDescription>Crie um template para preencher automaticamente as premissas macro em novas simulações.</CardDescription>
+              <CardDescription>Crie um template para preencher automaticamente as premissas macro em novas simulações</CardDescription>
             </CardHeader>
           </Card>
         )}
@@ -166,7 +176,7 @@ export default function ScenarioTemplatesPage() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader className="mb-2">
             <DialogTitle>{editing ? "Editar template" : "Novo template"}</DialogTitle>
-            <DialogDescription>Defina as premissas macroeconômicas que serão reaproveitadas.</DialogDescription>
+            <DialogDescription>Defina as premissas macroeconômicas que serão reaproveitadas</DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
@@ -259,7 +269,7 @@ export default function ScenarioTemplatesPage() {
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={createTemplate.isPending || updateTemplate.isPending}>
-                  {editing ? "Salvar" : "Criar"}
+                  {editing ? "Salvar" : "Criar template"}
                 </Button>
               </DialogFooter>
             </form>
