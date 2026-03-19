@@ -15,12 +15,13 @@ import { Textarea } from "@components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
-import { Plus, Trash2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, ArrowRight, CheckCircle2, Kanban, List } from "lucide-react";
 
 import { useTasks } from "@/hooks/useTasks";
 import { useClients } from "@/hooks/useClients";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
 import { Client } from "@/types/client";
+import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
 
 const CreateTaskFormSchema = z.object({
   title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
@@ -111,19 +112,19 @@ export default function CalendarTasksPage() {
 
   const TaskCard = ({ task }: { task: Task }) => (
     <Card className="rounded-2xl">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-start justify-between gap-3">
-          <span className="text-foreground/90">{task.title}</span>
+      <CardHeader>
+        <CardTitle className="text-sm flex items-start justify-between gap-4">
+          <span className="text-sm text-foreground/90">{task.title}</span>
           <div className="flex gap-2">
-            <span className={`text-xs px-2 py-1 rounded-full ${priorityClass(task.priority)}`}>{priorityLabel(task.priority)}</span>
+            <span className={`text-xs px-3 py-1 rounded-full ${priorityClass(task.priority)}`}>{priorityLabel(task.priority)}</span>
           </div>
         </CardTitle>
         <CardDescription className="text-xs">
-          <span className="font-medium text-foreground/70">Vence:</span> {formatDatePt(task.dueDate)}
+          <span className="font-medium text-foreground/70 mr-1">Vence em:</span>
+          {formatDatePt(task.dueDate)}
           {task.client?.id && (
             <>
-              {" "}
-              •{" "}
+              <span className="px-2">•</span>
               <Link href={`/clients/${task.client.id}`} className="underline underline-offset-4">
                 {task.client.name}
               </Link>
@@ -132,13 +133,15 @@ export default function CalendarTasksPage() {
         </CardDescription>
       </CardHeader>
       {task.description && <CardContent className="text-sm text-muted-foreground">{task.description}</CardContent>}
-      <CardContent className="pt-0 flex items-center justify-between gap-2">
-        <div className="text-xs text-muted-foreground">{task.source === "AUTO" ? "Automático" : "Manual"} • {statusLabel(task.status)}</div>
-        <div className="flex gap-2">
+      <CardContent className="flex items-baseline justify-between gap-2">
+        <div className="text-xs text-muted-foreground">
+          {task.source === "AUTO" ? "Automático" : "Manual"} • {statusLabel(task.status)}
+        </div>
+        <div className="flex gap-1 items-baseline">
           {task.status !== "DONE" && (
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               className="rounded-xl"
               onClick={() => updateTask.mutate({ id: task.id, patch: { status: "DONE" } })}
             >
@@ -149,7 +152,7 @@ export default function CalendarTasksPage() {
           {task.status === "TODO" && (
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               className="rounded-xl"
               onClick={() => updateTask.mutate({ id: task.id, patch: { status: "IN_PROGRESS" } })}
             >
@@ -159,12 +162,12 @@ export default function CalendarTasksPage() {
           )}
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             className="rounded-xl text-foreground/50 hover:text-red-600"
             onClick={() => deleteTask.mutate(task.id)}
             aria-label="Remover tarefa"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-2 w-2" />
           </Button>
         </div>
       </CardContent>
@@ -176,14 +179,15 @@ export default function CalendarTasksPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground/80">Agenda e Tarefas</h1>
-          <p className="text-sm text-muted-foreground">CRM básico com tarefas vinculadas aos clientes (manuais e automáticas).</p>
+          <p className="text-sm text-muted-foreground mt-1">CRM básico com tarefas vinculadas aos clientes (manuais e automáticas)</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-xl" onClick={() => setView(view === "kanban" ? "list" : "kanban")}>
+          <Button variant="outline" onClick={() => setView(view === "kanban" ? "list" : "kanban")}>
+            {view === "kanban" ? <List /> : <Kanban />}
             {view === "kanban" ? "Ver Lista" : "Ver Kanban"}
           </Button>
-          <Button className="rounded-xl" onClick={() => setOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => setOpen(true)}>
+            <Plus strokeWidth={3} className="mr-2 h-4 w-4" />
             Nova Tarefa
           </Button>
         </div>
@@ -217,13 +221,13 @@ export default function CalendarTasksPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-3">
+              <div className="space-y-3 md:border-r-2 md:pr-4">
                 <div className="text-sm font-semibold text-foreground/80">A Fazer</div>
                 {grouped.TODO.map((t) => (
                   <TaskCard key={t.id} task={t} />
                 ))}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 border-r-2">
                 <div className="text-sm font-semibold text-foreground/80">Em Andamento</div>
                 {grouped.IN_PROGRESS.map((t) => (
                   <TaskCard key={t.id} task={t} />
@@ -244,7 +248,7 @@ export default function CalendarTasksPage() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader className="mb-2">
             <DialogTitle>Nova tarefa</DialogTitle>
-            <DialogDescription>Crie um lembrete manual e vincule a um cliente para acesso rápido.</DialogDescription>
+            <DialogDescription>Crie um lembrete manual e vincule a um cliente para acesso rápido</DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
@@ -268,7 +272,9 @@ export default function CalendarTasksPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição (opcional)</FormLabel>
+                    <FormLabel>
+                      Descrição <Badge variant="secondary">Opcional</Badge>
+                    </FormLabel>
                     <FormControl>
                       <Textarea placeholder="Contexto, links, próximos passos..." {...field} />
                     </FormControl>
@@ -277,7 +283,7 @@ export default function CalendarTasksPage() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <FormField
                   control={form.control}
                   name="dueDate"
@@ -300,7 +306,7 @@ export default function CalendarTasksPage() {
                       <FormLabel>Prioridade</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="min-h-11 rounded-xl">
+                          <SelectTrigger className="min-h-11 w-full rounded-xl">
                             <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
                         </FormControl>
@@ -320,10 +326,12 @@ export default function CalendarTasksPage() {
                   name="clientId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cliente (opcional)</FormLabel>
+                      <FormLabel>
+                        Cliente <Badge variant="secondary">Opcional</Badge>
+                      </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
-                          <SelectTrigger className="min-h-11 rounded-xl">
+                          <SelectTrigger className="min-h-11 w-full rounded-xl">
                             <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
                         </FormControl>
@@ -356,4 +364,3 @@ export default function CalendarTasksPage() {
     </div>
   );
 }
-
