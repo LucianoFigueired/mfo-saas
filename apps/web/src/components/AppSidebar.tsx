@@ -15,7 +15,18 @@ import {
   SidebarFooter,
   SidebarRail,
 } from "@components/ui/sidebar";
-import { Users, Wallet, Activity, LogOut, ChartArea } from "lucide-react";
+import {
+  Users,
+  LogOut,
+  ChartArea,
+  FileChartPie,
+  LayoutPanelLeft,
+  CalendarFold,
+  NotepadTextDashed,
+  Wallet,
+  Workflow,
+  Bolt,
+} from "lucide-react";
 
 import NamedLogo from "@assets/named-logo.svg";
 import Logo from "@assets/square-logo.svg";
@@ -23,27 +34,57 @@ import Logo from "@assets/square-logo.svg";
 import { useAuthStore } from "@/stores/useAuthStore";
 import Image from "next/image";
 
-const items = [
+const mainItems = [
+  {
+    title: "Visão Geral",
+    url: "/dashboard",
+    icon: LayoutPanelLeft,
+  },
+  {
+    title: "Lembretes",
+    url: "/calendar",
+    icon: CalendarFold,
+  },
   {
     title: "Clientes",
     url: "/clients",
     icon: Users,
   },
-
   {
     title: "Simulações",
     url: "/simulations",
     icon: ChartArea,
   },
+];
+
+const toolItems = [
   {
-    title: "Gestão de Ativos",
+    title: "Templates Macro",
+    url: "/templates",
+    icon: NotepadTextDashed,
+  },
+  {
+    title: "Relatórios",
+    url: "/reports",
+    icon: FileChartPie,
+  },
+  {
+    title: "Biblioteca de ativos",
     url: "/assets",
     icon: Wallet,
   },
+];
+
+const adminItems = [
   {
-    title: "Inteligência Artificial",
-    url: "/ai-analysis",
-    icon: Activity,
+    title: "Integrações",
+    url: "/integrations",
+    icon: Workflow,
+  },
+  {
+    title: "Configurações",
+    url: "/config",
+    icon: Bolt,
   },
 ];
 
@@ -74,7 +115,41 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {mainItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {toolItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Administrativo</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                     <a href={item.url}>

@@ -324,8 +324,7 @@ export default function DashboardPage() {
                       Vence em {new Date(t.dueDate).toLocaleDateString("pt-BR")}
                       {t.client?.id && (
                         <>
-                          {" "}
-                          •{" "}
+                          <span className="px-2">•</span>
                           <Link href={`/clients/${t.client.id}`} className="underline underline-offset-4">
                             {t.client.name}
                           </Link>
@@ -383,7 +382,7 @@ export default function DashboardPage() {
           <CardDescription className="text-xs">Acesso rápido ao que você mexeu por último</CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-10 md:grid-cols-2">
             <div className="space-y-2">
               <div className="text-sm font-semibold text-foreground/80">Últimos clientes adicionados</div>
               <Separator />
@@ -400,7 +399,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="space-y-2 mt-4">
+            <div className="space-y-2">
               <div className="text-sm font-semibold text-foreground/80">Últimas simulações editadas</div>
               <Separator />
               <div className="space-y-2">
@@ -416,9 +415,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <Button asChild variant="outline" size="sm" className="rounded-xl">
-                      <Link href={`/simulations/${s.id}/projection`} className="text-muted-foreground">
-                        Retomar
-                      </Link>
+                      <Link href={`/simulations/${s.id}/projection`}>Retomar</Link>
                     </Button>
                   </div>
                 ))}

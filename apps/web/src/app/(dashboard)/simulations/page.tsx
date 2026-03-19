@@ -45,8 +45,8 @@ export default function SimulationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between border-b-2 pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-2">Simulações</h1>
-          <p className="text-muted-foreground">Gerencie as simulações de cenários patrimoniais</p>
+          <h1 className="text-xl font-bold tracking-tight">Simulações</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gerencie as simulações de cenários patrimoniais</p>
         </div>
         <Button onClick={() => router.push("/simulations/new")} className="font-semibold">
           <Plus className="mr-2 h-4 w-4" strokeWidth={3} /> Nova Simulação

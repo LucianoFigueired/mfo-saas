@@ -18,8 +18,8 @@ export default function ClientsPage() {
     <div className="flex-1 space-y-6">
       <div className="flex items-center justify-between border-b-2 pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-2">Meus Clientes</h1>
-          <p className="text-muted-foreground">Faça o gerenciamento e acesse as simulações de cada cliente</p>
+          <h1 className="text-xl font-bold tracking-tight">Meus Clientes</h1>
+          <p className="text-sm text-muted-foreground mt-1">Faça o gerenciamento e acesse as simulações de cada cliente</p>
         </div>
         <CreateClientDialog />
       </div>

@@ -49,7 +49,7 @@ export default function ScenarioTemplatesPage() {
   });
 
   const sortedTemplates = useMemo(() => {
-    return (templates || []).slice().sort((a, b) => (new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
+    return (templates || []).slice().sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }, [templates]);
 
   function openCreate() {
@@ -102,9 +102,9 @@ export default function ScenarioTemplatesPage() {
           <h1 className="text-xl font-bold tracking-tight text-foreground/80">Templates de Cenários</h1>
           <p className="text-sm text-muted-foreground">Salve premissas macroeconômicas padrão para reutilizar em novas simulações.</p>
         </div>
-        <Button onClick={openCreate} className="rounded-xl">
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Template
+        <Button onClick={openCreate}>
+          <Plus className="mr-2 h-4 w-4" strokeWidth={3} />
+          <span className="font-semibold">Novo Template</span>
         </Button>
       </div>
 
@@ -113,7 +113,7 @@ export default function ScenarioTemplatesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedTemplates.map((tpl) => (
           <Card key={tpl.id} className="rounded-2xl">
-            <CardHeader className="pb-3">
+            <CardHeader>
               <CardTitle className="flex items-start justify-between gap-4">
                 <span className="text-base">{tpl.name}</span>
                 <div className="flex gap-2">
@@ -269,4 +269,3 @@ export default function ScenarioTemplatesPage() {
     </div>
   );
 }
-
