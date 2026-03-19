@@ -2,7 +2,7 @@ import { CodeXml } from "lucide-react";
 
 export default function IntegrationsPage() {
   return (
-    <main className="bg-background flex min-h-full flex-col items-center justify-center text-center">
+    <main className="flex min-h-full flex-col items-center justify-center text-center">
       <div className="flex max-w-md flex-col items-center space-y-6">
         <div className="flex items-center">
           <CodeXml className="text-primary h-20 w-20" />
