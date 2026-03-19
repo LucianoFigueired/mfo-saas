@@ -7,7 +7,12 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
-  app.enableCors();
+  app.enableCors({
+    origin: ['http://localhost:3000', process.env.FRONTEND_URL],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new AllExceptionsFilter());
 
