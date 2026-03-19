@@ -22,14 +22,14 @@ import { toast } from "sonner";
 import { cn } from "@/components/@repo/@mfo/common/lib/utils";
 
 import { useSimulation } from "@/hooks/useSimulations";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useClients } from "@/hooks/useClients";
 import { Client } from "@/types/client";
 import { useScenarioTemplates } from "@/hooks/useScenarioTemplates";
 import { ScenarioTemplate } from "@/types/scenarioTemplate";
 import { Badge } from "@/components/@repo/@mfo/common/components/ui/badge";
 
-export default function NewSimulationPage() {
+function NewSimulationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -358,5 +358,13 @@ export default function NewSimulationPage() {
         </form>
       </Form>
     </div>
+  );
+}
+
+export default function NewSimulationPage() {
+  return (
+    <Suspense fallback={<div>Carregando formulário...</div>}>
+      <NewSimulationContent />
+    </Suspense>
   );
 }
