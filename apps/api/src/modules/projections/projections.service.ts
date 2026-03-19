@@ -161,7 +161,7 @@ export class ProjectionsService {
       realEstate = realEstate.times(new Decimal(1).plus(realEstateRate));
     }
 
-    console.log(results);
+    console.log('gerando analise da IA');
 
     // this.eventEmitter.emit(
     //   'projection.generated',
