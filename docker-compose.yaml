@@ -8,6 +8,7 @@ services:
       - "3001:3001"
       - "9229:9229"
     environment:
+      - FRONTEND_URL=${FRONTEND_URL}
       - DATABASE_URL=${DATABASE_URL}
       - DIRECT_URL=${DIRECT_URL}
       - REDIS_HOST=${REDIS_HOST}
