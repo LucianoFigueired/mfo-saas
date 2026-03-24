@@ -5,6 +5,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { ProjectionGeneratedEvent } from './events/projection-generated.event';
 
 type AssetRow = {
   name: string;
@@ -161,16 +162,14 @@ export class ProjectionsService {
       realEstate = realEstate.times(new Decimal(1).plus(realEstateRate));
     }
 
-    console.log('gerando analise da IA');
-
-    // this.eventEmitter.emit(
-    //   'projection.generated',
-    //   new ProjectionGeneratedEvent(simulationId, userId, results, {
-    //     name: simulation.name,
-    //     baseTax: simulation.baseTax.toNumber(),
-    //     status: status,
-    //   }),
-    // );
+    this.eventEmitter.emit(
+      'projection.generated',
+      new ProjectionGeneratedEvent(simulationId, userId, results, {
+        name: simulation.name,
+        baseTax: simulation.baseTax.toNumber(),
+        status: status,
+      }),
+    );
 
     return results;
   }

@@ -45,7 +45,6 @@ export default function LoginPage() {
 
       router.push("/");
     } catch (error: any) {
-      console.log(error);
       toast.error(`Erro ao autenticar: ${error.message}`);
     } finally {
       setLoading(false);
